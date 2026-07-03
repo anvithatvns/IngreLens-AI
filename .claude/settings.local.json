@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile shared_ui.py backend/db/database.py backend/db/schema.py config/settings.py)",
+      "Bash(python3 -m py_compile \"pages/1_📷_Scanner.py\")",
+      "Bash(python3 -m py_compile \"pages/2_🔍_Analyzer.py\" \"pages/4_⚖️_Comparison.py\")",
+      "Bash(python3 -m py_compile shared_ui.py \"pages/5_👤_Preferences.py\" \"pages/6_📚_History.py\")",
+      "Bash(rm -f ingrelens.db .ingrelens_uid)",
+      "Bash(python3 -c ' *)",
+      "Bash(git --version)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

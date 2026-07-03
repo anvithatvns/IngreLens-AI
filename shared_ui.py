@@ -1,0 +1,706 @@
+"""
+IngreLens AI — Shared UI: Sage & Stone palette + real logo.
+"""
+import streamlit as st
+import base64
+import hashlib
+from pathlib import Path
+
+from backend.db import database as db
+
+# ── Sage & Stone color tokens ──────────────────────────────────────────────────
+SAGE = {
+    "darkest":  "#2d4a3e",   # Sidebar bg, deepest text
+    "dark":     "#3d6b5e",   # Hero gradient end
+    "mid":      "#4a7c6f",   # Primary interactive
+    "accent":   "#6aab9b",   # Buttons, highlights
+    "teal":     "#8da8a1",   # From logo — muted teal
+    "light":    "#c5dcd7",   # Tints, badges
+    "pale":     "#e2edeb",   # Card borders, light bg
+    "cream":    "#f5f2ee",   # Page background
+    "offwhite": "#faf8f5",   # Card surfaces
+    "stone":    "#6b7870",   # Secondary text
+    "charcoal": "#2d3d35",   # Body text
+}
+
+BRAND_CSS = f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+html,body,[class*="css"]{{font-family:'Inter',sans-serif!important}}
+#MainMenu,footer,.stDeployButton{{display:none!important}}
+header[data-testid="stHeader"]{{background:transparent}}
+.main .block-container{{padding:1.5rem 2rem 3rem;max-width:1200px}}
+
+/* ── SIDEBAR ── */
+[data-testid="stSidebar"]{{
+  background:linear-gradient(180deg,{SAGE['darkest']} 0%,{SAGE['dark']} 55%,{SAGE['darkest']} 100%)!important;
+  border-right:none!important
+}}
+[data-testid="stSidebar"] *{{color:white!important}}
+[data-testid="stSidebar"] .stButton button{{
+  background:rgba(255,255,255,0.12)!important;
+  border:1px solid rgba(255,255,255,0.25)!important;
+  color:white!important;border-radius:8px!important;font-size:0.8rem!important
+}}
+[data-testid="stSidebar"] hr{{border-color:rgba(255,255,255,0.18)!important}}
+[data-testid="stSidebar"] .stExpander{{display:none!important}}
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"]>div:has(.stExpander){{display:none!important}}
+
+/* ── HERO ── */
+.il-hero{{
+  background:linear-gradient(135deg,{SAGE['darkest']} 0%,{SAGE['dark']} 50%,{SAGE['mid']} 100%);
+  border-radius:20px;padding:2.4rem 2.5rem;color:white;margin-bottom:2rem;
+  position:relative;overflow:hidden
+}}
+.il-hero::before{{
+  content:'';position:absolute;top:-50px;right:-50px;
+  width:200px;height:200px;background:rgba(255,255,255,0.04);border-radius:50%
+}}
+.il-hero h1{{font-size:2rem;font-weight:800;margin:0 0 0.3rem;color:white;letter-spacing:-0.01em}}
+.il-hero p{{font-size:1rem;opacity:0.88;margin:0;color:white}}
+.il-tagline{{font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.65;margin-bottom:3px}}
+
+/* ── VERDICT ── */
+.verdict-vegan{{background:linear-gradient(135deg,#d4ebe5,#b8dbd3);border-left:5px solid {SAGE['mid']};border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0;box-shadow:0 4px 20px rgba(74,124,111,0.12)}}
+.verdict-notvegan{{background:linear-gradient(135deg,#f5e0dc,#edc4bb);border-left:5px solid #b84a3a;border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0;box-shadow:0 4px 20px rgba(184,74,58,0.12)}}
+.verdict-uncertain{{background:linear-gradient(135deg,#f7f0d8,#ede0b0);border-left:5px solid #c4962a;border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0}}
+.verdict-unknown{{background:{SAGE['pale']};border-left:5px solid {SAGE['teal']};border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0}}
+.verdict-icon{{font-size:2rem;margin-bottom:3px}}
+.verdict-title{{font-size:1.4rem;font-weight:700;margin:0 0 0.3rem;color:{SAGE['charcoal']}}}
+.verdict-sub{{font-size:0.9rem;color:#4a5c55;margin:0;line-height:1.5}}
+.conf-bar-bg{{background:rgba(0,0,0,0.08);border-radius:99px;height:7px;margin-top:6px}}
+.conf-bar{{height:7px;border-radius:99px}}
+
+/* ── INGREDIENT CARDS ── */
+.ing-card{{background:{SAGE['offwhite']};border-radius:11px;padding:10px 12px;margin:3px 0;border:1px solid {SAGE['pale']};display:flex;align-items:flex-start;gap:9px;box-shadow:0 1px 6px rgba(45,74,62,0.05)}}
+.ing-card:hover{{box-shadow:0 3px 12px rgba(45,74,62,0.1)}}
+.ing-icon{{font-size:1rem;flex-shrink:0;margin-top:1px}}
+.ing-name{{font-weight:600;font-size:0.85rem;color:{SAGE['charcoal']}}}
+.ing-reason{{font-size:0.76rem;color:{SAGE['stone']};margin-top:1px;line-height:1.4}}
+.ing-alt{{font-size:0.7rem;color:{SAGE['mid']};font-weight:500;margin-top:3px}}
+.ing-card-nv{{border-left:3px solid #b84a3a;background:#fdf6f5}}
+.ing-card-unc{{border-left:3px solid #c4962a;background:#fdfaf2}}
+.ing-card-vegan{{border-left:3px solid {SAGE['mid']};background:#f4faf8}}
+
+/* ── METRICS ── */
+.metric-row{{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:1rem 0}}
+.metric-card{{background:{SAGE['offwhite']};border:1px solid {SAGE['pale']};border-radius:13px;padding:1rem;text-align:center;box-shadow:0 2px 10px rgba(45,74,62,0.05)}}
+.metric-icon{{font-size:1.3rem;margin-bottom:3px}}
+.metric-num{{font-size:1.5rem;font-weight:700;color:{SAGE['charcoal']};line-height:1}}
+.metric-lbl{{font-size:0.65rem;color:{SAGE['stone']};text-transform:uppercase;letter-spacing:0.06em;margin-top:3px}}
+
+/* ── HEALTH ── */
+.health-wrap{{background:{SAGE['offwhite']};border-radius:13px;padding:1.1rem 1.3rem;border:1px solid {SAGE['pale']};box-shadow:0 2px 10px rgba(45,74,62,0.05)}}
+.health-num{{font-size:2.2rem;font-weight:800;line-height:1}}
+.health-lbl{{font-size:0.65rem;color:{SAGE['stone']};text-transform:uppercase;letter-spacing:0.06em}}
+.health-bar-bg{{background:{SAGE['pale']};border-radius:99px;height:9px;margin-top:7px}}
+.health-bar{{height:9px;border-radius:99px}}
+
+/* ── PILLS ── */
+.pill{{display:inline-flex;align-items:center;gap:3px;border-radius:99px;padding:3px 11px;font-size:0.76rem;margin:2px;font-weight:500}}
+.pill-red{{background:#fde8e5;color:#8b2a1e;border:1px solid #f0bdb5}}
+.pill-orange{{background:#fdf3e0;color:#8b6210;border:1px solid #e8d098}}
+.pill-green{{background:#e2f0ec;color:#2d5a4a;border:1px solid {SAGE['light']}}}
+.pill-blue{{background:#e2ecf5;color:#1a4a7a;border:1px solid #b5cce0}}
+.pill-sage{{background:{SAGE['pale']};color:{SAGE['darkest']};border:1px solid {SAGE['light']}}}
+
+/* ── SECTION HEADERS ── */
+.shdr{{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:{SAGE['stone']};margin:1.2rem 0 0.6rem}}
+
+/* ── BUTTONS ── */
+.stButton>button{{
+  background:linear-gradient(135deg,{SAGE['darkest']},{SAGE['mid']})!important;
+  color:white!important;border:none!important;border-radius:10px!important;
+  font-weight:600!important;font-size:0.88rem!important;
+  box-shadow:0 4px 14px rgba(74,124,111,0.28)!important;transition:all 0.2s!important
+}}
+.stButton>button:hover{{
+  box-shadow:0 6px 20px rgba(74,124,111,0.42)!important;
+  transform:translateY(-1px)!important
+}}
+
+/* ── AGENT BADGES ── */
+.agent-badge{{display:inline-flex;align-items:center;gap:4px;background:{SAGE['pale']};color:{SAGE['darkest']};border:1px solid {SAGE['light']};border-radius:6px;padding:3px 9px;font-size:0.72rem;font-weight:500;margin:2px}}
+
+/* ── HISTORY ── */
+.h-dot{{width:9px;height:9px;border-radius:50%;flex-shrink:0}}
+.history-row{{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.1)}}
+
+/* ── MISC ── */
+.stTabs [data-baseweb="tab"]{{font-size:0.86rem!important;font-weight:500!important}}
+.stTabs [data-baseweb="tab"][aria-selected="true"]{{color:{SAGE['mid']}!important}}
+div[data-testid="stMetric"]{{background:{SAGE['offwhite']};border-radius:12px;padding:1rem;border:1px solid {SAGE['pale']}}}
+[data-testid="stChatMessage"]{{border-radius:14px!important}}
+
+/* ── DEMO CARDS ── */
+.demo-card{{background:{SAGE['offwhite']};border-radius:14px;padding:14px;border:1px solid {SAGE['pale']};cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(45,74,62,0.05)}}
+.demo-card:hover{{box-shadow:0 6px 22px rgba(74,124,111,0.16);transform:translateY(-2px)}}
+
+/* ── FEATURE CARDS ── */
+.feat-card{{background:{SAGE['offwhite']};border-radius:14px;padding:16px;border:1px solid {SAGE['pale']};box-shadow:0 2px 8px rgba(45,74,62,0.04)}}
+
+/* ── STAT CARDS ── */
+.stat-card{{background:{SAGE['offwhite']};border:1px solid {SAGE['pale']};border-radius:14px;padding:14px;text-align:center}}
+
+/* ── FOOTER ── */
+.ingrelens-footer{{
+  background:linear-gradient(135deg,{SAGE['darkest']},{SAGE['dark']});
+  color:white;text-align:center;padding:1.2rem;border-radius:14px;
+  margin-top:2rem;font-size:0.82rem;opacity:0.92
+}}
+.ingrelens-footer a{{color:{SAGE['light']};text-decoration:none}}
+
+</style>
+"""
+
+def inject_css():
+    st.markdown(BRAND_CSS, unsafe_allow_html=True)
+
+def get_logo_b64(variant="brand"):
+    """Load logo as base64. variant: header|sidebar|brand|icon|square"""
+    paths = {
+        "header":  "logo_header.png",   # 300px — for page hero headers
+        "sidebar": "logo_sidebar.png",  # 160px — for sidebar branding
+        "brand":   "logo_header.png",   # alias → header size
+        "icon":    "logo_icon.png",     # 64px — for chat avatars
+        "square":  "logo_square.png",   # 120px — for page_icon / small uses
+    }
+    p = Path(__file__).parent / "assets" / paths.get(variant, "logo_header.png")
+    if p.exists():
+        return base64.b64encode(p.read_bytes()).decode()
+    # Fallback chain
+    for fallback in ["logo_header.png", "logo_square.png", "logo_icon.png"]:
+        fp = Path(__file__).parent / "assets" / fallback
+        if fp.exists():
+            return base64.b64encode(fp.read_bytes()).decode()
+    return ""
+
+
+BRAND_TAGLINE = "SCAN, ANALYSE & EAT SMARTER"
+
+def render_page_header(page_icon: str, page_title: str, page_subtitle: str = ""):
+    """
+    Shared global header used on every page.
+    Shows: larger logo + IngreLens AI branding + page title + subtitle.
+    Call this at the top of every page instead of duplicating hero HTML.
+    """
+    b64 = get_logo_b64("header")
+    logo_img = (
+        f'<img src="data:image/png;base64,{b64}" '
+        f'style="width:160px;border-radius:14px;'
+        f'box-shadow:0 4px 20px rgba(0,0,0,0.22);'
+        f'margin-bottom:10px" alt="IngreLens AI">'
+        if b64 else
+        f'<div style="font-size:3rem">{page_icon}</div>'
+    )
+    subtitle_html = (
+        f'<p style="font-size:0.95rem;opacity:0.88;margin:4px 0 0;color:white">'
+        f'{page_subtitle}</p>'
+        if page_subtitle else ""
+    )
+    st.markdown(
+        f'''<div class="il-hero" style="padding:1.8rem 2.2rem">
+  <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+    <div style="flex-shrink:0;text-align:center">
+      {logo_img}
+      <div style="font-size:0.58rem;font-weight:700;letter-spacing:0.14em;
+                  text-transform:uppercase;opacity:0.7;color:white;margin-top:4px">
+        IngreLens AI
+      </div>
+      <div style="font-size:0.52rem;font-weight:600;letter-spacing:0.1em;
+                  text-transform:uppercase;opacity:0.55;color:white">
+        SCAN, ANALYSE &amp; EAT SMARTER
+      </div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:1.55rem;font-weight:800;color:white;
+                  letter-spacing:-0.01em;margin-bottom:3px">
+        {page_icon} {page_title}
+      </div>
+      {subtitle_html}
+    </div>
+  </div>
+</div>''',
+        unsafe_allow_html=True,
+    )
+
+
+def render_logo_hero():
+    """Full logo for hero section."""
+    b64 = get_logo_b64("header")
+    if b64:
+        st.markdown(
+            f'<img src="data:image/png;base64,{b64}" '
+            f'style="max-width:320px;width:100%;margin-bottom:1rem;border-radius:16px" '
+            f'alt="IngreLens AI logo">',
+            unsafe_allow_html=True,
+        )
+
+def render_logo_sidebar():
+    """Sidebar logo — uses pre-optimized 160px version for fast load."""
+    b64 = get_logo_b64("sidebar")
+    if b64:
+        st.markdown(
+            f'<div style="text-align:center;padding:10px 8px 4px">' 
+            f'<img src="data:image/png;base64,{b64}" ' 
+            f'style="width:150px;max-width:90%;border-radius:14px;' 
+            f'border:1px solid rgba(255,255,255,0.2);display:inline-block"' 
+            f' alt="IngreLens AI"></div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f'<div style="text-align:center;padding:0.8rem 0 0.4rem"><img src="data:image/png;base64,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" style="width:130px;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,0.35)"></div>',
+            unsafe_allow_html=True,
+        )
+
+def render_sidebar():
+    with st.sidebar:
+        # ── Logo ──────────────────────────────────────────────────────────────
+        render_logo_sidebar()
+        st.markdown(
+            '<div style="text-align:center;font-size:1.05rem;font-weight:700;'
+            'margin:6px 0 2px;letter-spacing:-0.01em;color:white">IngreLens AI</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div style="text-align:center;font-size:0.58rem;opacity:0.65;'
+            'letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;color:white">'
+            'SCAN, ANALYSE &amp; EAT SMARTER</div>',
+            unsafe_allow_html=True,
+        )
+
+        # ── Navigation ────────────────────────────────────────────────────────
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.18);margin:6px 0 10px">'
+            '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;'
+            'text-transform:uppercase;opacity:0.5;margin-bottom:6px;color:white">Navigation</div>',
+            unsafe_allow_html=True,
+        )
+        nav_items = [
+            ("🏠", "IngreLens AI Home"),  # matches pages.toml name
+            ("📷", "Scanner"),
+            ("🔍", "Analyzer"),
+            ("🤖", "AI Assistant"),
+            ("⚖️", "Compare"),
+            ("👤", "Preferences"),
+            ("📚", "History"),
+        ]
+        for icon, label in nav_items:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:8px;'
+                f'padding:6px 10px;font-size:0.85rem;color:rgba(255,255,255,0.88);'
+                f'border-radius:8px;margin-bottom:1px">'
+                f'<span style="font-size:1rem">{icon}</span>'
+                f'<span style="font-weight:500">{label}</span></div>',
+                unsafe_allow_html=True,
+            )
+
+        # ── Active Agents ─────────────────────────────────────────────────────
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.18);margin:10px 0 10px">'
+            '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;'
+            'text-transform:uppercase;opacity:0.5;margin-bottom:8px;color:white">Active Agents</div>',
+            unsafe_allow_html=True,
+        )
+        agents = [
+            ("🔍", "Product Agent"),
+            ("🧬", "Analysis Agent"),
+            ("🏷️", "Classifier"),
+            ("📊", "Nutrition Agent"),
+            ("🤖", "AI Analyst"),
+        ]
+        for icon, name in agents:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:8px;'
+                f'padding:4px 10px;margin-bottom:2px">'
+                f'<div style="width:7px;height:7px;background:#6aab9b;'
+                f'border-radius:50%;flex-shrink:0"></div>'
+                f'<span style="font-size:0.82rem;color:rgba(255,255,255,0.85)">'
+                f'{icon} {name}</span></div>',
+                unsafe_allow_html=True,
+            )
+
+        # ── Recent Scans ──────────────────────────────────────────────────────
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.18);margin:10px 0 10px">'
+            '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;'
+            'text-transform:uppercase;opacity:0.5;margin-bottom:8px;color:white">Recent Scans</div>',
+            unsafe_allow_html=True,
+        )
+        history = st.session_state.get("history", [])
+        if history:
+            for item in history[:5]:
+                dot_color = {"Vegan": "#6aab9b", "Not Vegan": "#d4675a", "Uncertain": "#d4b45a"}.get(item["verdict"], "#8da8a1")
+                verdict_color_text = {"Vegan": "#6aab9b", "Not Vegan": "#d4675a", "Uncertain": "#d4b45a"}.get(item["verdict"], "#8da8a1")
+                st.markdown(
+                    f'<div style="display:flex;align-items:center;gap:8px;'
+                    f'padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.08);'
+                    f'margin-bottom:2px">'
+                    f'<div style="width:8px;height:8px;background:{dot_color};'
+                    f'border-radius:50%;flex-shrink:0"></div>'
+                    f'<div style="flex:1;min-width:0">'
+                    f'<div style="font-size:0.82rem;font-weight:600;color:white;'
+                    f'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                    f'{item["product"]}</div>'
+                    f'<div style="font-size:0.68rem;color:{verdict_color_text}">'
+                    f'{item["verdict"]}</div>'
+                    f'</div></div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.markdown(
+                '<div style="padding:4px 10px;font-size:0.78rem;'
+                'color:rgba(255,255,255,0.45)">No scans yet</div>',
+                unsafe_allow_html=True,
+            )
+
+@st.cache_resource(show_spinner=False)
+def _ensure_db_ready():
+    """Create ingrelens.db and its tables once per process, if missing."""
+    db.init_db()
+    return True
+
+def init_state():
+    _ensure_db_ready()
+    for k, v in {
+        "history": [], "chat_messages": [], "current_result": None,
+        "user_prefs": {"diet": "None", "allergens": [], "health_goals": []},
+    }.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+    # Local persistent identity (no auth in this app) — survives restarts
+    # and browser sessions so preferences/history don't need reconfiguring.
+    if "user_id" not in st.session_state:
+        st.session_state.user_id = db.get_or_create_local_user()
+        saved_prefs = db.get_user_preferences(st.session_state.user_id)
+        if saved_prefs:
+            st.session_state.user_prefs = {
+                "diet": saved_prefs.get("diet_type") or "None",
+                "allergens": saved_prefs.get("allergies") or [],
+                "health_goals": st.session_state.user_prefs.get("health_goals", []),
+            }
+        # One-time load of persisted scan history so History/Preferences pages
+        # show past scans immediately after an app restart or new browser session.
+        st.session_state.history = _load_history_from_db(st.session_state.user_id)
+
+
+def _load_history_from_db(user_id: str) -> list:
+    try:
+        rows = db.get_scan_history(user_id)
+    except Exception:
+        return []
+    entries = []
+    for row in rows:
+        entries.append(_scan_row_to_history_entry(row))
+    return entries
+
+
+def _scan_row_to_history_entry(row: dict) -> dict:
+    from datetime import datetime
+    ai_response = None
+    cached = db.get_cached_product(barcode=row.get("barcode"), image_hash=row.get("image_hash"))
+    if cached:
+        ai_response = cached.get("ai_response")
+    result = db.deserialize_result(ai_response)
+
+    try:
+        dt = datetime.fromisoformat(row["timestamp"])
+    except Exception:
+        dt = None
+
+    verdict = row.get("classification") or "Uncertain"
+    ingredients = row.get("full_ingredients") or ""
+    confidence_raw = row.get("confidence")
+    confidence_pct = int(confidence_raw * 100) if isinstance(confidence_raw, (int, float)) else 0
+
+    return {
+        "product":     row.get("product_name"),
+        "verdict":     verdict,
+        "snippet":     ingredients[:70] + "…" if len(ingredients) > 70 else ingredients,
+        "ingredients": ingredients,
+        "time":        dt.strftime("%H:%M") if dt else "",
+        "date":        dt.strftime("%d %b") if dt else "",
+        "result":      result,
+        "confidence":  int(result.vegan_confidence * 100) if result else confidence_pct,
+        "health_score": result.health_score if result else 0,
+        "allergens":   result.allergens_detected if result else [],
+        "diet_category": getattr(result, "diet_category", verdict) if result else verdict,
+    }
+
+def add_history(name, verdict, ingredients, result=None, barcode=None, image_hash=None):
+    from datetime import datetime
+    entry = {
+        "product":     name,
+        "verdict":     verdict,
+        "snippet":     ingredients[:70] + "…" if len(ingredients) > 70 else ingredients,
+        "ingredients": ingredients,
+        "time":        datetime.now().strftime("%H:%M"),
+        "date":        datetime.now().strftime("%d %b"),
+        "result":      result,
+        # Extra fields for History page display
+        "confidence":  int(result.vegan_confidence * 100) if result else 0,
+        "health_score": result.health_score if result else 0,
+        "allergens":   result.allergens_detected if result else [],
+        "diet_category": getattr(result, "diet_category", verdict) if result else verdict,
+    }
+
+    # Persist every successful scan to SQLite regardless of the in-session
+    # duplicate check below, so scan/analysis history & analytics stay complete.
+    user_id = st.session_state.get("user_id") or db.get_or_create_local_user()
+    db.record_scan_and_analysis(user_id, name, ingredients, result, barcode=barcode, image_hash=image_hash)
+
+    # Avoid exact duplicate consecutive entries in the on-screen list
+    existing = st.session_state.history
+    if existing and existing[0]["product"] == name and existing[0]["snippet"] == entry["snippet"]:
+        return  # skip duplicate
+    st.session_state.history.insert(0, entry)
+    if len(st.session_state.history) > 100:
+        st.session_state.history = st.session_state.history[:100]
+
+
+def log_activity(action: str, page: str = ""):
+    """Fire-and-forget usage analytics; never raises into the calling page."""
+    user_id = st.session_state.get("user_id") or db.get_or_create_local_user()
+    db.log_activity(user_id, action, page)
+
+
+def hash_image_bytes(data: bytes) -> str:
+    return hashlib.md5(data).hexdigest()
+
+
+def cached_analyze(svc, ingredients_text: str, product_name: str, barcode: str = None, image_hash: str = None):
+    """
+    Cache-first wrapper around IngredientAnalysisService.analyze().
+    Checks product_cache by barcode/image_hash before re-running
+    classification; falls back to a normal analyze() call on a miss or
+    any cache error, so behavior/output is identical either way.
+    """
+    if barcode or image_hash:
+        cached = db.get_cached_product(barcode=barcode, image_hash=image_hash)
+        if cached and cached.get("ai_response"):
+            restored = db.deserialize_result(cached["ai_response"])
+            if restored is not None:
+                return restored
+    return svc.analyze(ingredients_text, product_name)
+
+
+def cached_ocr_extract(ocr, uploaded_file):
+    """
+    Cache-first wrapper around OCRService.extract_text(). Hashes the image
+    bytes and skips the (comparatively expensive) OCR pass entirely if this
+    exact image was already processed. Returns (extracted_text, image_hash).
+    """
+    try:
+        data = uploaded_file.getvalue() if hasattr(uploaded_file, "getvalue") else uploaded_file.read()
+        image_hash = hash_image_bytes(data)
+    except Exception:
+        return ocr.extract_text(uploaded_file), None
+
+    cached = db.get_cached_product(image_hash=image_hash)
+    if cached and cached.get("ingredients"):
+        return cached["ingredients"], image_hash
+
+    if hasattr(uploaded_file, "seek"):
+        uploaded_file.seek(0)
+    extracted = ocr.extract_text(uploaded_file)
+    return extracted, image_hash
+
+# ── Verdict helpers ────────────────────────────────────────────────────────────
+def verdict_css(v):
+    return {"Vegan":"verdict-vegan","Not Vegan":"verdict-notvegan","Uncertain":"verdict-uncertain"}.get(v,"verdict-unknown")
+
+def verdict_emoji(v):
+    return {"Vegan":"✅","Not Vegan":"❌","Uncertain":"⚠️"}.get(v,"❓")
+
+def verdict_color(v):
+    return {"Vegan": SAGE["mid"], "Not Vegan": "#b84a3a", "Uncertain": "#c4962a"}.get(v, SAGE["stone"])
+
+# ── UI renderers ───────────────────────────────────────────────────────────────
+def render_verdict_card(result):
+    v   = result.overall_vegan
+    css = verdict_css(v)
+    emj = verdict_emoji(v)
+    col = verdict_color(v)
+    conf = int(result.vegan_confidence * 100)
+    st.markdown(
+        f'<div class="{css}">'
+        f'<div class="verdict-icon">{emj}</div>'
+        f'<div class="verdict-title" style="color:{col}">{v.upper()}</div>'
+        f'<div class="verdict-sub">{result.reasoning}</div>'
+        f'<div style="margin-top:0.7rem">'
+        f'<div style="font-size:0.74rem;color:#4a5c55;font-weight:500">Confidence: {conf}%</div>'
+        f'<div class="conf-bar-bg"><div class="conf-bar" style="width:{conf}%;background:{col}"></div></div>'
+        f'</div></div>',
+        unsafe_allow_html=True,
+    )
+
+def render_metrics(result):
+    v   = result.overall_vegan
+    col = verdict_color(v)
+    nv  = len(result.non_vegan_ingredients)
+    al  = len(result.allergens_detected)
+    hs  = result.health_score
+    tot = len(result.ingredient_results)
+    hc  = SAGE["mid"] if hs >= 70 else "#c4962a" if hs >= 45 else "#b84a3a"
+    st.markdown(
+        f'<div class="metric-row">'
+        f'<div class="metric-card"><div class="metric-icon">{verdict_emoji(v)}</div>'
+        f'<div class="metric-num" style="font-size:0.95rem;color:{col}">{v}</div>'
+        f'<div class="metric-lbl">Vegan Status</div></div>'
+        f'<div class="metric-card"><div class="metric-icon">🧪</div>'
+        f'<div class="metric-num">{tot}</div><div class="metric-lbl">Ingredients</div></div>'
+        f'<div class="metric-card"><div class="metric-icon">⚠️</div>'
+        f'<div class="metric-num" style="color:{"#b84a3a" if al > 0 else SAGE["mid"]}">{al}</div>'
+        f'<div class="metric-lbl">Allergens</div></div>'
+        f'<div class="metric-card"><div class="metric-icon">🏥</div>'
+        f'<div class="metric-num" style="color:{hc}">{hs}</div>'
+        f'<div class="metric-lbl">Health Score</div></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+def render_health_score(score):
+    c = SAGE["mid"] if score >= 70 else "#c4962a" if score >= 45 else "#b84a3a"
+    l = "Excellent" if score >= 85 else "Good" if score >= 70 else "Moderate" if score >= 50 else "Poor"
+    st.markdown(
+        f'<div class="health-wrap">'
+        f'<div class="health-lbl">Health Score</div>'
+        f'<div class="health-num" style="color:{c}">{score}'
+        f'<span style="font-size:0.9rem;color:{SAGE["stone"]}">/100</span></div>'
+        f'<div style="font-size:0.78rem;color:{c};font-weight:600">{l}</div>'
+        f'<div class="health-bar-bg"><div class="health-bar" style="width:{score}%;background:{c}"></div></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+def render_nutriscore(ns):
+    if not ns:
+        return
+    ns = ns.upper()
+    if ns not in "ABCDE":
+        return
+    bg  = {"A": "#1a6b4a", "B": "#5a9a30", "C": "#c8a020", "D": "#c87820", "E": "#b84a3a"}
+    tc  = {"A": "white",   "B": "white",   "C": "#4a3800", "D": "white",   "E": "white"}
+    cols = st.columns(5)
+    for i, L in enumerate(["A", "B", "C", "D", "E"]):
+        active = "transform:scale(1.2);box-shadow:0 3px 10px rgba(0,0,0,0.2);" if L == ns else "opacity:0.2;"
+        with cols[i]:
+            st.markdown(
+                f'<div style="width:34px;height:42px;background:{bg[L]};border-radius:6px;'
+                f'display:flex;align-items:center;justify-content:center;'
+                f'font-size:1rem;font-weight:700;color:{tc[L]};{active}">{L}</div>',
+                unsafe_allow_html=True,
+            )
+
+def render_ingredient_cards(results, status_filter=None):
+    icons  = {"non-vegan": "❌", "uncertain": "⚠️", "vegan": "✅", "usually vegan": "✅", "usually non-vegan": "❌"}
+    css_map = {"non-vegan": "ing-card-nv", "uncertain": "ing-card-unc", "vegan": "ing-card-vegan", "usually vegan": "ing-card-vegan"}
+    for r in results:
+        if status_filter and r.vegan_status not in status_filter:
+            continue
+        icon = icons.get(r.vegan_status, "❓")
+        css  = css_map.get(r.vegan_status, "")
+        alt  = f'<div class="ing-alt">🌱 Alt: {r.alternatives}</div>' if r.alternatives else ""
+        st.markdown(
+            f'<div class="ing-card {css}">'
+            f'<div class="ing-icon">{icon}</div>'
+            f'<div><div class="ing-name">{r.name}</div>'
+            f'<div class="ing-reason">{r.reason}</div>{alt}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+def render_allergen_pills(allergens):
+    if not allergens:
+        return
+    icons = {"dairy":"🥛","eggs":"🥚","gluten":"🌾","soy":"🫘","peanuts":"🥜",
+             "tree nuts":"🌰","fish":"🐟","shellfish":"🦐","sesame":"🌿","wheat":"🌾"}
+    st.markdown(
+        " ".join(f'<span class="pill pill-red">{icons.get(a,"⚠️")} {a.title()}</span>' for a in allergens),
+        unsafe_allow_html=True,
+    )
+
+def render_agent_row():
+    st.markdown(
+        f'<div style="margin:0.5rem 0 1rem">'
+        f'<span class="agent-badge">🔍 Product Agent</span>'
+        f'<span class="agent-badge">🧬 Analysis Agent</span>'
+        f'<span class="agent-badge">🏷️ Classification Agent</span>'
+        f'<span class="agent-badge">📊 Nutrition Agent</span>'
+        f'<span class="agent-badge">🤖 AI Analyst Agent</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+def full_analysis_display(result, product=None):
+    render_verdict_card(result)
+    render_agent_row()
+    render_metrics(result)
+
+    left, right = st.columns([3, 2])
+
+    with left:
+        nv  = [r for r in result.ingredient_results if "non-vegan" in r.vegan_status]
+        unc = [r for r in result.ingredient_results if r.vegan_status == "uncertain"]
+        ok  = [r for r in result.ingredient_results if r.vegan_status in ("vegan", "usually vegan")]
+
+        if nv:
+            st.markdown('<div class="shdr">❌ Non-Vegan Ingredients</div>', unsafe_allow_html=True)
+            render_ingredient_cards(result.ingredient_results, {"non-vegan", "usually non-vegan"})
+
+        if unc:
+            st.markdown('<div class="shdr">⚠️ Uncertain — Verify with Manufacturer</div>', unsafe_allow_html=True)
+            render_ingredient_cards(result.ingredient_results, {"uncertain"})
+
+        if ok:
+            st.markdown(f'<div class="shdr">✅ Vegan Ingredients ({len(ok)})</div>', unsafe_allow_html=True)
+            render_ingredient_cards(ok[:10], None)
+            if len(ok) > 10:
+                with st.expander(f"Show {len(ok) - 10} more"):
+                    render_ingredient_cards(ok[10:], None)
+
+        if result.allergens_detected:
+            st.markdown('<div class="shdr">⚠️ Allergens</div>', unsafe_allow_html=True)
+            render_allergen_pills(result.allergens_detected)
+
+        for f in result.health_flags:
+            st.warning(f"⚠️ {f}")
+
+        for rec in result.recommendations:
+            st.info(f"💡 {rec}")
+
+    with right:
+        render_health_score(result.health_score)
+
+        if product:
+            if product.get("nutriscore"):
+                st.markdown('<div class="shdr">Nutri-Score</div>', unsafe_allow_html=True)
+                render_nutriscore(product["nutriscore"])
+
+            nm = product.get("nutriments", {}) or {}
+            if any(nm.values()):
+                st.markdown('<div class="shdr">Nutrition / 100g</div>', unsafe_allow_html=True)
+                def fmt(v, u="g"):
+                    return f"{float(v):.1f} {u}" if v is not None else "—"
+                for lbl, key, unit in [
+                    ("🔥 Energy","energy","kcal"), ("🫀 Fat","fat","g"),
+                    ("🍬 Sugars","sugars","g"),    ("💪 Protein","protein","g"),
+                    ("🧂 Salt","salt","g"),         ("🌾 Fiber","fiber","g"),
+                ]:
+                    ca, cb = st.columns([3, 2])
+                    ca.caption(lbl)
+                    cb.markdown(f"**{fmt(nm.get(key), unit)}**")
+
+            if product.get("allergens"):
+                st.markdown('<div class="shdr">Package Allergen Warnings</div>', unsafe_allow_html=True)
+                render_allergen_pills(product["allergens"])
+
+        if result.ultra_processed_markers:
+            st.markdown('<div class="shdr">🏭 Ultra-Processed</div>', unsafe_allow_html=True)
+            st.markdown(" ".join(f'<span class="pill pill-orange">{m}</span>' for m in result.ultra_processed_markers), unsafe_allow_html=True)
+
+        if result.preservatives:
+            st.markdown('<div class="shdr">🧪 Preservatives</div>', unsafe_allow_html=True)
+            st.markdown(" ".join(f'<span class="pill pill-blue">{p}</span>' for p in result.preservatives), unsafe_allow_html=True)

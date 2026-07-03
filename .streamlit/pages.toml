@@ -1,0 +1,27 @@
+[[pages]]
+path = "app.py"
+name = "🏠 IngreLens AI Home"
+
+[[pages]]
+path = "pages/1_📷_Scanner.py"
+name = "📷 Scanner"
+
+[[pages]]
+path = "pages/2_🔍_Analyzer.py"
+name = "🔍 Analyzer"
+
+[[pages]]
+path = "pages/3_🤖_AI_Assistant.py"
+name = "🤖 AI Assistant"
+
+[[pages]]
+path = "pages/4_⚖️_Comparison.py"
+name = "⚖️ Comparison"
+
+[[pages]]
+path = "pages/5_👤_Preferences.py"
+name = "👤 Preferences"
+
+[[pages]]
+path = "pages/6_📚_History.py"
+name = "📚 History"

@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.env
+venv/
+env/
+.venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Vector store (regenerates automatically)
+vector_store/chroma_db/
+
+# Local SQLite persistence (regenerates automatically, holds local user data)
+ingrelens.db
+.ingrelens_uid
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Large model files
+*.bin
+*.pt
+*.pkl
+*.safetensors
+sentence_transformers/
+
+# OS
+.DS_Store

@@ -1,0 +1,2721 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-01-01",
+  "total_ingredients": 320,
+  "ingredients": [
+    {
+      "name": "milk",
+      "aliases": [
+        "cow milk",
+        "whole milk",
+        "skimmed milk",
+        "skim milk",
+        "dairy milk",
+        "full fat milk"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Animal-derived liquid produced by mammary glands of cows",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "oat milk, almond milk, soy milk, coconut milk",
+      "confidence": 0.99
+    },
+    {
+      "name": "skimmed milk powder",
+      "aliases": [
+        "skim milk powder",
+        "dried skim milk",
+        "non-fat dry milk",
+        "non fat milk solids"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Dehydrated form of skimmed cow milk",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "soy milk powder, oat milk powder",
+      "confidence": 0.99
+    },
+    {
+      "name": "milk powder",
+      "aliases": [
+        "dry milk",
+        "dried milk",
+        "powdered milk",
+        "milk solids"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Dehydrated cow milk",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "plant-based milk powder",
+      "confidence": 0.99
+    },
+    {
+      "name": "butter",
+      "aliases": [
+        "butter fat",
+        "butterfat",
+        "anhydrous milk fat",
+        "clarified butter"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Dairy fat product made from churning cream",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [
+        "high saturated fat"
+      ],
+      "alternatives": "vegan butter, coconut oil, olive oil",
+      "confidence": 0.99
+    },
+    {
+      "name": "cream",
+      "aliases": [
+        "heavy cream",
+        "whipping cream",
+        "double cream",
+        "sour cream",
+        "cr\u00e8me fra\u00eeche"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "High-fat dairy product from cow milk",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [
+        "high fat"
+      ],
+      "alternatives": "coconut cream, cashew cream",
+      "confidence": 0.99
+    },
+    {
+      "name": "whey",
+      "aliases": [
+        "whey protein",
+        "whey powder",
+        "whey protein isolate",
+        "whey protein concentrate",
+        "whey protein hydrolysate"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Milk protein byproduct from cheese making",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "pea protein, soy protein, rice protein, hemp protein",
+      "confidence": 0.99
+    },
+    {
+      "name": "casein",
+      "aliases": [
+        "caseinates",
+        "sodium caseinate",
+        "calcium caseinate",
+        "milk protein"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Primary protein found in mammalian milk",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "soy protein isolate, pea protein",
+      "confidence": 0.99
+    },
+    {
+      "name": "lactose",
+      "aliases": [
+        "milk sugar",
+        "lactulose"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Natural sugar found in milk",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [
+        "may cause intolerance"
+      ],
+      "alternatives": "coconut sugar, cane sugar",
+      "confidence": 0.99
+    },
+    {
+      "name": "cheese",
+      "aliases": [
+        "cheddar",
+        "mozzarella",
+        "parmesan",
+        "brie",
+        "gouda",
+        "processed cheese",
+        "cheese powder"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Dairy product made by curdling milk",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [
+        "high sodium"
+      ],
+      "alternatives": "vegan cheese, nutritional yeast",
+      "confidence": 0.99
+    },
+    {
+      "name": "yogurt",
+      "aliases": [
+        "yoghurt",
+        "greek yogurt",
+        "dairy yogurt",
+        "frozen yogurt"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Fermented dairy product",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "coconut yogurt, soy yogurt, almond yogurt",
+      "confidence": 0.99
+    },
+    {
+      "name": "ghee",
+      "aliases": [
+        "clarified butter",
+        "anhydrous butter oil"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Clarified butter used in South Asian cooking",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [
+        "high saturated fat"
+      ],
+      "alternatives": "coconut oil, vegan ghee",
+      "confidence": 0.99
+    },
+    {
+      "name": "egg",
+      "aliases": [
+        "eggs",
+        "whole egg",
+        "egg white",
+        "egg yolk",
+        "dried egg",
+        "egg powder",
+        "albumen",
+        "egg albumin",
+        "egg solids"
+      ],
+      "category": "egg",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Animal product from poultry",
+      "allergens": [
+        "eggs"
+      ],
+      "health_flags": [],
+      "alternatives": "flax egg, chia egg, aquafaba, JUST egg",
+      "confidence": 0.99
+    },
+    {
+      "name": "mayonnaise",
+      "aliases": [
+        "mayo",
+        "aioli"
+      ],
+      "category": "egg",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Emulsion sauce made with eggs and oil",
+      "allergens": [
+        "eggs"
+      ],
+      "health_flags": [
+        "high fat"
+      ],
+      "alternatives": "vegan mayo (made with aquafaba or soy)",
+      "confidence": 0.97
+    },
+    {
+      "name": "honey",
+      "aliases": [
+        "raw honey",
+        "organic honey",
+        "bee honey",
+        "honeydew"
+      ],
+      "category": "insect",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Produced by bees, not considered vegan",
+      "allergens": [],
+      "health_flags": [
+        "high sugar"
+      ],
+      "alternatives": "agave nectar, maple syrup, date syrup",
+      "confidence": 0.95
+    },
+    {
+      "name": "beeswax",
+      "aliases": [
+        "cera alba",
+        "E901",
+        "white wax"
+      ],
+      "category": "insect",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Wax produced by honeybees, used as coating agent",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "carnauba wax, rice bran wax",
+      "confidence": 0.97
+    },
+    {
+      "name": "gelatin",
+      "aliases": [
+        "gelatine",
+        "beef gelatin",
+        "pork gelatin",
+        "E441"
+      ],
+      "category": "meat",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Protein from animal bones, skin, and connective tissue",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "agar-agar, pectin, carrageenan, konjac",
+      "confidence": 0.99
+    },
+    {
+      "name": "lard",
+      "aliases": [
+        "pork fat",
+        "bacon fat",
+        "rendered fat"
+      ],
+      "category": "meat",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Rendered fat from pig",
+      "allergens": [],
+      "health_flags": [
+        "high saturated fat"
+      ],
+      "alternatives": "vegetable shortening, coconut oil",
+      "confidence": 0.99
+    },
+    {
+      "name": "beef extract",
+      "aliases": [
+        "beef flavoring",
+        "meat extract",
+        "bovine extract"
+      ],
+      "category": "meat",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Concentrated paste from beef",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "yeast extract, mushroom broth",
+      "confidence": 0.98
+    },
+    {
+      "name": "tallow",
+      "aliases": [
+        "beef tallow",
+        "mutton tallow",
+        "suet"
+      ],
+      "category": "meat",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Rendered fat from cattle or sheep",
+      "allergens": [],
+      "health_flags": [
+        "high saturated fat"
+      ],
+      "alternatives": "coconut oil, palm oil",
+      "confidence": 0.99
+    },
+    {
+      "name": "collagen",
+      "aliases": [
+        "collagen peptides",
+        "hydrolyzed collagen",
+        "marine collagen"
+      ],
+      "category": "meat",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Structural protein from animal connective tissues",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "plant-based collagen boosters (vitamin C, silica)",
+      "confidence": 0.98
+    },
+    {
+      "name": "anchovies",
+      "aliases": [
+        "anchovy",
+        "anchovy extract",
+        "anchovy paste",
+        "fish sauce"
+      ],
+      "category": "seafood",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Small saltwater fish",
+      "allergens": [
+        "fish"
+      ],
+      "health_flags": [
+        "high sodium"
+      ],
+      "alternatives": "capers, seaweed, soy sauce",
+      "confidence": 0.99
+    },
+    {
+      "name": "carmine",
+      "aliases": [
+        "cochineal",
+        "carminic acid",
+        "natural red 4",
+        "E120",
+        "crimson lake"
+      ],
+      "category": "insect",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Red dye derived from crushed cochineal insects",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "beet juice, paprika extract, lycopene",
+      "confidence": 0.99
+    },
+    {
+      "name": "shellac",
+      "aliases": [
+        "E904",
+        "confectioner's glaze",
+        "resinous glaze",
+        "pharmaceutical glaze"
+      ],
+      "category": "insect",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Resin secreted by lac bug used as glazing agent",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "carnauba wax, zein",
+      "confidence": 0.98
+    },
+    {
+      "name": "isinglass",
+      "aliases": [
+        "fish gelatin"
+      ],
+      "category": "seafood",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "non-vegetarian",
+      "description": "Fining agent from fish swim bladders, used in beer/wine",
+      "allergens": [
+        "fish"
+      ],
+      "health_flags": [],
+      "alternatives": "bentonite clay, Irish moss",
+      "confidence": 0.97
+    },
+    {
+      "name": "rennet",
+      "aliases": [
+        "animal rennet",
+        "chymosin",
+        "rennin"
+      ],
+      "category": "dairy",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "varies",
+      "description": "Enzyme from calf stomach used in cheese making",
+      "allergens": [
+        "dairy"
+      ],
+      "health_flags": [],
+      "alternatives": "microbial rennet, vegetable rennet",
+      "confidence": 0.97
+    },
+    {
+      "name": "royal jelly",
+      "aliases": [
+        "bee milk"
+      ],
+      "category": "insect",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Secretion produced by worker bees",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "none",
+      "confidence": 0.95
+    },
+    {
+      "name": "propolis",
+      "aliases": [
+        "bee glue",
+        "bee propolis"
+      ],
+      "category": "insect",
+      "vegan_status": "non-vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Resinous mixture collected by bees",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "none",
+      "confidence": 0.95
+    },
+    {
+      "name": "vitamin d3",
+      "aliases": [
+        "cholecalciferol",
+        "D3"
+      ],
+      "category": "questionable",
+      "vegan_status": "usually non-vegan",
+      "vegetarian_status": "varies",
+      "description": "Often derived from lanolin (sheep wool) or fish oil. Vegan D3 from lichen exists.",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "vitamin D2 (ergocalciferol), lichen-derived D3",
+      "confidence": 0.8
+    },
+    {
+      "name": "vitamin d2",
+      "aliases": [
+        "ergocalciferol"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant or yeast-derived vitamin D \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.95
+    },
+    {
+      "name": "lecithin",
+      "aliases": [
+        "soy lecithin",
+        "sunflower lecithin",
+        "e322"
+      ],
+      "category": "questionable",
+      "vegan_status": "usually vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Emulsifier - typically from soy or sunflower (vegan), rarely from egg yolk",
+      "allergens": [
+        "soy"
+      ],
+      "health_flags": [],
+      "alternatives": "sunflower lecithin",
+      "confidence": 0.8
+    },
+    {
+      "name": "natural flavors",
+      "aliases": [
+        "natural flavoring",
+        "natural flavourings",
+        "natural flavor"
+      ],
+      "category": "questionable",
+      "vegan_status": "uncertain",
+      "vegetarian_status": "uncertain",
+      "description": "Can be derived from plant or animal sources. Contact manufacturer for clarification.",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "specify plant-derived natural flavors",
+      "confidence": 0.5
+    },
+    {
+      "name": "mono and diglycerides",
+      "aliases": [
+        "monoglycerides",
+        "diglycerides",
+        "E471",
+        "glycerides"
+      ],
+      "category": "questionable",
+      "vegan_status": "uncertain",
+      "vegetarian_status": "uncertain",
+      "description": "Emulsifiers that can be derived from plant or animal fats",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "sunflower lecithin, soy lecithin",
+      "confidence": 0.6
+    },
+    {
+      "name": "l-cysteine",
+      "aliases": [
+        "cysteine",
+        "E920"
+      ],
+      "category": "questionable",
+      "vegan_status": "usually non-vegan",
+      "vegetarian_status": "usually non-vegetarian",
+      "description": "Amino acid used in bread, often derived from poultry feathers or animal hair",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "synthetic L-cysteine",
+      "confidence": 0.75
+    },
+    {
+      "name": "sugar",
+      "aliases": [
+        "cane sugar",
+        "white sugar",
+        "granulated sugar",
+        "table sugar",
+        "sucrose",
+        "raw sugar"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Refined from sugarcane or sugar beet. Note: Some US cane sugar filtered through bone char \u2014 beet sugar always vegan.",
+      "allergens": [],
+      "health_flags": [
+        "high sugar",
+        "refined carb"
+      ],
+      "alternatives": "coconut sugar, maple syrup, dates",
+      "confidence": 0.9
+    },
+    {
+      "name": "palm oil",
+      "aliases": [
+        "palm kernel oil",
+        "fractionated palm oil",
+        "palm shortening"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vegan oil from palm fruit. Ethical concerns around deforestation.",
+      "allergens": [],
+      "health_flags": [
+        "high saturated fat",
+        "environmental concern"
+      ],
+      "alternatives": "sunflower oil, coconut oil",
+      "confidence": 0.95
+    },
+    {
+      "name": "cocoa",
+      "aliases": [
+        "cocoa powder",
+        "cocoa mass",
+        "cocoa solids",
+        "cacao",
+        "cocoa butter"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant-derived from cacao beans \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "salt",
+      "aliases": [
+        "sodium chloride",
+        "sea salt",
+        "himalayan pink salt",
+        "rock salt",
+        "kosher salt"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral compound \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "high sodium"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "water",
+      "aliases": [
+        "filtered water",
+        "purified water",
+        "mineral water"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Water \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "wheat flour",
+      "aliases": [
+        "enriched flour",
+        "unbleached flour",
+        "enriched wheat flour",
+        "bread flour",
+        "all purpose flour"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Ground wheat \u2014 vegan. Contains gluten.",
+      "allergens": [
+        "gluten",
+        "wheat"
+      ],
+      "health_flags": [
+        "contains gluten"
+      ],
+      "alternatives": "almond flour, oat flour, gluten-free flour blend",
+      "confidence": 0.99
+    },
+    {
+      "name": "sunflower oil",
+      "aliases": [
+        "sunflower seed oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant oil from sunflower seeds \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "coconut oil",
+      "aliases": [
+        "virgin coconut oil",
+        "refined coconut oil",
+        "MCT oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant oil from coconut \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "high saturated fat"
+      ],
+      "alternatives": "sunflower oil, olive oil",
+      "confidence": 0.99
+    },
+    {
+      "name": "olive oil",
+      "aliases": [
+        "extra virgin olive oil",
+        "EVOO",
+        "pure olive oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant oil from olives \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "soy",
+      "aliases": [
+        "soybeans",
+        "soybean",
+        "soy protein",
+        "textured soy protein",
+        "soy protein isolate",
+        "tofu",
+        "tempeh",
+        "miso",
+        "edamame"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Legume \u2014 vegan. Major allergen.",
+      "allergens": [
+        "soy"
+      ],
+      "health_flags": [],
+      "alternatives": "pea protein, lentils",
+      "confidence": 0.99
+    },
+    {
+      "name": "oats",
+      "aliases": [
+        "oat flour",
+        "rolled oats",
+        "oat bran",
+        "oatmeal",
+        "oat extract"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Cereal grain \u2014 vegan. May be cross-contaminated with gluten.",
+      "allergens": [
+        "may contain gluten"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "corn",
+      "aliases": [
+        "corn starch",
+        "cornstarch",
+        "corn syrup",
+        "corn flour",
+        "maize",
+        "modified corn starch"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Cereal grain and derivatives \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "rice",
+      "aliases": [
+        "rice flour",
+        "rice starch",
+        "brown rice",
+        "white rice",
+        "rice protein"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Cereal grain \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "almonds",
+      "aliases": [
+        "almond flour",
+        "almond meal",
+        "almond butter",
+        "almond milk",
+        "almond oil",
+        "almond extract"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree nut \u2014 vegan. Major allergen.",
+      "allergens": [
+        "tree nuts"
+      ],
+      "health_flags": [],
+      "alternatives": "sunflower seed butter, pumpkin seed butter",
+      "confidence": 0.99
+    },
+    {
+      "name": "hazelnuts",
+      "aliases": [
+        "hazelnut paste",
+        "hazelnut oil",
+        "hazelnut flour"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree nut \u2014 vegan. Major allergen.",
+      "allergens": [
+        "tree nuts"
+      ],
+      "health_flags": [],
+      "alternatives": "sunflower seed paste",
+      "confidence": 0.99
+    },
+    {
+      "name": "peanuts",
+      "aliases": [
+        "peanut butter",
+        "peanut oil",
+        "groundnuts",
+        "peanut flour"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Legume \u2014 vegan. Major allergen.",
+      "allergens": [
+        "peanuts"
+      ],
+      "health_flags": [],
+      "alternatives": "almond butter, sunflower butter",
+      "confidence": 0.99
+    },
+    {
+      "name": "cashews",
+      "aliases": [
+        "cashew nuts",
+        "cashew butter",
+        "cashew milk",
+        "cashew cream"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree nut \u2014 vegan",
+      "allergens": [
+        "tree nuts"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "vanilla",
+      "aliases": [
+        "vanilla extract",
+        "vanilla bean",
+        "vanilla flavor",
+        "vanilla powder",
+        "vanillin"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant extract from vanilla orchid \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.97
+    },
+    {
+      "name": "baking soda",
+      "aliases": [
+        "sodium bicarbonate",
+        "bicarbonate of soda",
+        "bicarb"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral leavening agent \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "baking powder",
+      "aliases": [
+        "raising agent",
+        "leavening agent"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Chemical leavening agent \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "citric acid",
+      "aliases": [
+        "E330",
+        "lemon acid"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Organic acid from citrus fruits or fermentation \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "ascorbic acid",
+      "aliases": [
+        "vitamin C",
+        "E300"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vitamin C, usually synthetic or from plants \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "high fructose corn syrup",
+      "aliases": [
+        "HFCS",
+        "corn syrup solids",
+        "glucose-fructose syrup",
+        "glucose syrup"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Refined sweetener from corn \u2014 vegan but ultra-processed",
+      "allergens": [],
+      "health_flags": [
+        "high sugar",
+        "ultra-processed",
+        "linked to obesity"
+      ],
+      "alternatives": "maple syrup, agave, coconut sugar",
+      "confidence": 0.99
+    },
+    {
+      "name": "sodium benzoate",
+      "aliases": [
+        "E211",
+        "benzoate of soda"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic preservative \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "artificial preservative",
+        "may cause hyperactivity"
+      ],
+      "alternatives": "rosemary extract, vitamin E",
+      "confidence": 0.99
+    },
+    {
+      "name": "potassium sorbate",
+      "aliases": [
+        "E202",
+        "sorbate"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic preservative \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "artificial preservative"
+      ],
+      "alternatives": "rosemary extract",
+      "confidence": 0.99
+    },
+    {
+      "name": "xanthan gum",
+      "aliases": [
+        "E415",
+        "xanthan"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Polysaccharide from bacterial fermentation \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "guar gum, psyllium husk",
+      "confidence": 0.99
+    },
+    {
+      "name": "guar gum",
+      "aliases": [
+        "E412",
+        "guaran"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seed gum from guar plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "xanthan gum",
+      "confidence": 0.99
+    },
+    {
+      "name": "agar",
+      "aliases": [
+        "agar-agar",
+        "E406",
+        "kanten"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Polysaccharide from red algae \u2014 vegan gelatin substitute",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "carrageenan",
+      "aliases": [
+        "E407",
+        "irish moss extract"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Thickener from red seaweed \u2014 vegan. Some controversy over gut health effects.",
+      "allergens": [],
+      "health_flags": [
+        "gut health controversy"
+      ],
+      "alternatives": "agar, pectin",
+      "confidence": 0.95
+    },
+    {
+      "name": "pectin",
+      "aliases": [
+        "E440",
+        "apple pectin",
+        "citrus pectin"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Gelling agent from fruit \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "agar, carrageenan",
+      "confidence": 0.99
+    },
+    {
+      "name": "yeast extract",
+      "aliases": [
+        "autolyzed yeast",
+        "yeast",
+        "marmite",
+        "nutritional yeast"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Yeast-derived extract \u2014 vegan. High in B vitamins.",
+      "allergens": [],
+      "health_flags": [
+        "high sodium"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "maltodextrin",
+      "aliases": [
+        "dextrin",
+        "tapioca maltodextrin"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Carbohydrate from starch \u2014 vegan but highly processed",
+      "allergens": [],
+      "health_flags": [
+        "ultra-processed",
+        "high glycemic index"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "tapioca starch",
+      "aliases": [
+        "tapioca",
+        "cassava starch",
+        "manioc starch"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Starch from cassava plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "caramel color",
+      "aliases": [
+        "caramel colouring",
+        "E150a",
+        "E150b",
+        "E150c",
+        "E150d",
+        "plain caramel"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Food coloring from heated sugar \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "artificial coloring"
+      ],
+      "alternatives": "natural caramel flavor",
+      "confidence": 0.97
+    },
+    {
+      "name": "red 40",
+      "aliases": [
+        "allura red",
+        "E129",
+        "FD&C Red No. 40"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic red dye \u2014 vegan but artificial",
+      "allergens": [],
+      "health_flags": [
+        "artificial coloring",
+        "may cause hyperactivity"
+      ],
+      "alternatives": "beet juice, paprika extract",
+      "confidence": 0.97
+    },
+    {
+      "name": "yellow 5",
+      "aliases": [
+        "tartrazine",
+        "E102",
+        "FD&C Yellow No. 5"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic yellow dye \u2014 vegan but artificial",
+      "allergens": [],
+      "health_flags": [
+        "artificial coloring",
+        "may cause hyperactivity in children"
+      ],
+      "alternatives": "turmeric, beta-carotene",
+      "confidence": 0.97
+    },
+    {
+      "name": "blue 1",
+      "aliases": [
+        "brilliant blue",
+        "E133",
+        "FD&C Blue No. 1"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic blue dye \u2014 vegan but artificial",
+      "allergens": [],
+      "health_flags": [
+        "artificial coloring"
+      ],
+      "alternatives": "spirulina extract",
+      "confidence": 0.97
+    },
+    {
+      "name": "turmeric",
+      "aliases": [
+        "curcumin",
+        "E100",
+        "turmeric extract"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Natural yellow spice \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "beta-carotene",
+      "aliases": [
+        "beta carotene",
+        "E160a",
+        "provitamin A"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Natural orange pigment from plants \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "aspartame",
+      "aliases": [
+        "E951",
+        "NutraSweet",
+        "Equal"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Artificial sweetener \u2014 vegan. Controversial health debates.",
+      "allergens": [],
+      "health_flags": [
+        "artificial sweetener",
+        "PKU warning"
+      ],
+      "alternatives": "stevia, monk fruit extract",
+      "confidence": 0.97
+    },
+    {
+      "name": "stevia",
+      "aliases": [
+        "steviol glycosides",
+        "E960",
+        "Rebiana",
+        "Rebaudioside A"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Natural zero-calorie sweetener from stevia plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "erythritol",
+      "aliases": [
+        "E968",
+        "sugar alcohol"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Sugar alcohol from fermentation \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "acesulfame potassium",
+      "aliases": [
+        "acesulfame K",
+        "E950",
+        "Ace-K",
+        "Sunett"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Artificial sweetener \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "artificial sweetener"
+      ],
+      "alternatives": "stevia",
+      "confidence": 0.99
+    },
+    {
+      "name": "sucralose",
+      "aliases": [
+        "E955",
+        "Splenda"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic sweetener \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "artificial sweetener"
+      ],
+      "alternatives": "stevia, monk fruit",
+      "confidence": 0.99
+    },
+    {
+      "name": "sodium chloride",
+      "aliases": [
+        "table salt",
+        "iodized salt",
+        "salt"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral salt \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "high sodium"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "vinegar",
+      "aliases": [
+        "apple cider vinegar",
+        "white vinegar",
+        "balsamic vinegar",
+        "rice vinegar",
+        "acetic acid"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Fermented liquid \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "sunflower seeds",
+      "aliases": [
+        "sunflower kernel",
+        "sunflower seed"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seed from sunflower \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "pumpkin seeds",
+      "aliases": [
+        "pepitas",
+        "pumpkin seed kernels"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seed from pumpkin \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "chia seeds",
+      "aliases": [
+        "chia"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seeds from chia plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "flaxseed",
+      "aliases": [
+        "linseed",
+        "flax",
+        "flaxseed oil",
+        "linseed oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seeds from flax plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "hemp seeds",
+      "aliases": [
+        "hemp hearts",
+        "hemp protein",
+        "hemp milk"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seeds from hemp plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "sesame",
+      "aliases": [
+        "sesame seeds",
+        "tahini",
+        "sesame oil",
+        "sesame paste"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Seeds from sesame plant \u2014 vegan. Allergen in some countries.",
+      "allergens": [
+        "sesame"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "walnuts",
+      "aliases": [
+        "walnut oil",
+        "walnut pieces"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree nut \u2014 vegan",
+      "allergens": [
+        "tree nuts"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "pecans",
+      "aliases": [
+        "pecan nuts",
+        "pecan pieces"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree nut \u2014 vegan",
+      "allergens": [
+        "tree nuts"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "macadamia nuts",
+      "aliases": [
+        "macadamia",
+        "macadamia oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree nut \u2014 vegan",
+      "allergens": [
+        "tree nuts"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "maple syrup",
+      "aliases": [
+        "maple sugar",
+        "pure maple syrup"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Tree sap from maple trees \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "high sugar"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "agave",
+      "aliases": [
+        "agave syrup",
+        "agave nectar",
+        "blue agave"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant-based sweetener from agave \u2014 vegan. High fructose content.",
+      "allergens": [],
+      "health_flags": [
+        "high fructose"
+      ],
+      "alternatives": "maple syrup, date syrup",
+      "confidence": 0.99
+    },
+    {
+      "name": "date sugar",
+      "aliases": [
+        "dates",
+        "date syrup",
+        "medjool dates"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Made from dried dates \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "coconut sugar",
+      "aliases": [
+        "coconut palm sugar",
+        "palm sugar"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Sugar from coconut palm \u2014 vegan, low GI",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "molasses",
+      "aliases": [
+        "blackstrap molasses",
+        "treacle"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Byproduct of sugar refining from cane or beet \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "high sugar"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "lactic acid",
+      "aliases": [
+        "E270"
+      ],
+      "category": "questionable",
+      "vegan_status": "usually vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Can be from fermentation (vegan) or dairy. Mostly plant-derived in food.",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.8
+    },
+    {
+      "name": "glycerin",
+      "aliases": [
+        "glycerol",
+        "E422",
+        "glycerine",
+        "vegetable glycerin"
+      ],
+      "category": "questionable",
+      "vegan_status": "usually vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Can be plant or animal derived. Vegetable glycerin is vegan.",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "vegetable glycerin",
+      "confidence": 0.75
+    },
+    {
+      "name": "stearic acid",
+      "aliases": [
+        "E570"
+      ],
+      "category": "questionable",
+      "vegan_status": "uncertain",
+      "vegetarian_status": "uncertain",
+      "description": "Fatty acid that can be from animal or plant sources",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "plant-derived stearic acid",
+      "confidence": 0.6
+    },
+    {
+      "name": "phosphoric acid",
+      "aliases": [
+        "E338"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral acid used in sodas \u2014 vegan. Dental health concerns.",
+      "allergens": [],
+      "health_flags": [
+        "dental erosion",
+        "bone density concern"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "caffeine",
+      "aliases": [
+        "trimethylxanthine"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Natural stimulant from plants or synthetic \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "stimulant",
+        "may affect sleep"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "taurine",
+      "aliases": [
+        "2-aminoethanesulfonic acid"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "In most commercial products now synthetic/fermentation-derived \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.9
+    },
+    {
+      "name": "niacinamide",
+      "aliases": [
+        "niacin",
+        "vitamin B3",
+        "nicotinamide",
+        "nicotinic acid"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vitamin B3 \u2014 typically synthetic, vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "riboflavin",
+      "aliases": [
+        "vitamin B2",
+        "E101",
+        "lactoflavin"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vitamin B2 \u2014 synthetic or fermentation-derived, vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.97
+    },
+    {
+      "name": "pyridoxine",
+      "aliases": [
+        "vitamin B6",
+        "pyridoxine HCl"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vitamin B6 \u2014 synthetic, vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "folic acid",
+      "aliases": [
+        "vitamin B9",
+        "folate",
+        "E1067"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vitamin B9 \u2014 synthetic, vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "cyanocobalamin",
+      "aliases": [
+        "vitamin B12",
+        "methylcobalamin"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vitamin B12 \u2014 synthetic form is vegan (produced from bacteria)",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.95
+    },
+    {
+      "name": "iron",
+      "aliases": [
+        "ferrous sulfate",
+        "ferrous gluconate",
+        "reduced iron",
+        "iron fortification"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral \u2014 typically synthetic, vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "zinc",
+      "aliases": [
+        "zinc gluconate",
+        "zinc sulfate",
+        "zinc oxide"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral \u2014 synthetic, vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "calcium",
+      "aliases": [
+        "calcium carbonate",
+        "calcium phosphate",
+        "tricalcium phosphate",
+        "E170"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral supplement \u2014 typically vegan (from limestone)",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.97
+    },
+    {
+      "name": "soy sauce",
+      "aliases": [
+        "tamari",
+        "shoyu",
+        "dark soy sauce",
+        "light soy sauce"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Fermented soybean condiment \u2014 vegan",
+      "allergens": [
+        "soy",
+        "may contain gluten"
+      ],
+      "health_flags": [
+        "high sodium"
+      ],
+      "alternatives": "coconut aminos",
+      "confidence": 0.99
+    },
+    {
+      "name": "tofu",
+      "aliases": [
+        "bean curd",
+        "silken tofu",
+        "firm tofu"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Soy curd \u2014 vegan",
+      "allergens": [
+        "soy"
+      ],
+      "health_flags": [],
+      "alternatives": "tempeh, seitan",
+      "confidence": 0.99
+    },
+    {
+      "name": "tempeh",
+      "aliases": [
+        "fermented soy"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Fermented soybean cake \u2014 vegan",
+      "allergens": [
+        "soy"
+      ],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "seitan",
+      "aliases": [
+        "wheat gluten",
+        "vital wheat gluten",
+        "wheat meat",
+        "fu"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Wheat gluten protein \u2014 vegan. Not suitable for celiac.",
+      "allergens": [
+        "gluten",
+        "wheat"
+      ],
+      "health_flags": [],
+      "alternatives": "tofu, tempeh, legumes",
+      "confidence": 0.99
+    },
+    {
+      "name": "nutritional yeast",
+      "aliases": [
+        "nooch",
+        "yeast flakes"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Deactivated yeast with cheesy flavor \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "aquafaba",
+      "aliases": [
+        "chickpea brine",
+        "bean liquid"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Liquid from cooked chickpeas \u2014 vegan egg replacer",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "chickpeas",
+      "aliases": [
+        "garbanzo beans",
+        "chickpea flour",
+        "besan",
+        "gram flour",
+        "chana"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Legume \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "lentils",
+      "aliases": [
+        "green lentils",
+        "red lentils",
+        "lentil flour",
+        "dal"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Legume \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "potatoes",
+      "aliases": [
+        "potato starch",
+        "potato flour",
+        "sweet potato",
+        "dried potatoes"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Vegetable \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "tomato",
+      "aliases": [
+        "tomato paste",
+        "tomato puree",
+        "tomato powder",
+        "tomato concentrate",
+        "sun-dried tomatoes"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Fruit/vegetable \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "garlic",
+      "aliases": [
+        "garlic powder",
+        "garlic extract",
+        "garlic oil",
+        "dried garlic"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Allium vegetable \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "onion",
+      "aliases": [
+        "onion powder",
+        "dried onion",
+        "onion flakes",
+        "shallots"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Allium vegetable \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "spinach",
+      "aliases": [
+        "spinach powder",
+        "spinach extract"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Leafy green \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "spirulina",
+      "aliases": [
+        "spirulina powder",
+        "blue-green algae"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Cyanobacteria \u2014 vegan and nutrient dense",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "chlorella",
+      "aliases": [
+        "chlorella powder"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Green algae \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "pea protein",
+      "aliases": [
+        "pea protein isolate",
+        "yellow pea protein",
+        "pea protein powder"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Protein from yellow peas \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "brown rice protein",
+      "aliases": [
+        "rice protein isolate",
+        "rice protein powder"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Protein from brown rice \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "modified starch",
+      "aliases": [
+        "modified food starch",
+        "modified tapioca starch",
+        "hydroxypropyl starch"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Chemically modified starch \u2014 usually vegan",
+      "allergens": [
+        "may contain wheat"
+      ],
+      "health_flags": [
+        "ultra-processed"
+      ],
+      "alternatives": "",
+      "confidence": 0.9
+    },
+    {
+      "name": "sodium phosphate",
+      "aliases": [
+        "trisodium phosphate",
+        "disodium phosphate",
+        "E339"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral salt additive \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "artificial additive"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "carnauba wax",
+      "aliases": [
+        "E903",
+        "Brazil wax",
+        "ceara wax"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Wax from carnauba palm leaves \u2014 vegan alternative to shellac",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "paprika",
+      "aliases": [
+        "paprika extract",
+        "paprika oleoresin",
+        "E160c",
+        "capsanthin"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Spice/colorant from red peppers \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "cumin",
+      "aliases": [
+        "cumin seeds",
+        "cumin powder"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Spice \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "cinnamon",
+      "aliases": [
+        "cinnamon extract",
+        "cassia cinnamon"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Spice \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "black pepper",
+      "aliases": [
+        "white pepper",
+        "pepper extract",
+        "piperine"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Spice \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "rosemary extract",
+      "aliases": [
+        "rosemary oil",
+        "rosemary antioxidant",
+        "E392"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Natural antioxidant from rosemary \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "green tea extract",
+      "aliases": [
+        "EGCG",
+        "catechins",
+        "matcha"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant extract \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "sodium lauryl sulfate",
+      "aliases": [
+        "SLS",
+        "sodium dodecyl sulfate"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Synthetic detergent/emulsifier \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "may cause irritation"
+      ],
+      "alternatives": "",
+      "confidence": 0.9
+    },
+    {
+      "name": "polysorbate 80",
+      "aliases": [
+        "E433",
+        "tween 80"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Emulsifier from sorbitol and fatty acids \u2014 usually vegan",
+      "allergens": [],
+      "health_flags": [
+        "ultra-processed"
+      ],
+      "alternatives": "",
+      "confidence": 0.85
+    },
+    {
+      "name": "potassium chloride",
+      "aliases": [
+        "E508",
+        "salt substitute"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral salt \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "magnesium stearate",
+      "aliases": [
+        "E572",
+        "magnesium salt"
+      ],
+      "category": "questionable",
+      "vegan_status": "usually vegan",
+      "vegetarian_status": "vegetarian",
+      "description": "Can be from plant or animal stearic acid. Usually plant-derived.",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.75
+    },
+    {
+      "name": "titanium dioxide",
+      "aliases": [
+        "E171",
+        "CI 77891",
+        "white pigment"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral white pigment \u2014 vegan. EU banned in food 2022.",
+      "allergens": [],
+      "health_flags": [
+        "banned in EU food",
+        "possible nanoparticle concern"
+      ],
+      "alternatives": "",
+      "confidence": 0.95
+    },
+    {
+      "name": "silicon dioxide",
+      "aliases": [
+        "E551",
+        "silica",
+        "amorphous silica"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral anti-caking agent \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "tartaric acid",
+      "aliases": [
+        "E334",
+        "cream of tartar"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Organic acid from grapes \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "malic acid",
+      "aliases": [
+        "E296",
+        "apple acid"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Organic acid from fruit or synthetic \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "fumaric acid",
+      "aliases": [
+        "E297"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Organic acid from plant fermentation \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "sorbitol",
+      "aliases": [
+        "E420",
+        "glucitol",
+        "sorbitol syrup"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Sugar alcohol from plant starch \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "laxative effect in high doses"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "mannitol",
+      "aliases": [
+        "E421"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Sugar alcohol from seaweed or plant sources \u2014 vegan",
+      "allergens": [],
+      "health_flags": [
+        "laxative effect in high doses"
+      ],
+      "alternatives": "",
+      "confidence": 0.97
+    },
+    {
+      "name": "xylitol",
+      "aliases": [
+        "E967",
+        "wood sugar"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Sugar alcohol from plant xylan \u2014 vegan. Toxic to dogs.",
+      "allergens": [],
+      "health_flags": [
+        "toxic to dogs",
+        "laxative in high doses"
+      ],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "locust bean gum",
+      "aliases": [
+        "carob bean gum",
+        "E410",
+        "carob flour"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Gum from carob seeds \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "sodium alginate",
+      "aliases": [
+        "alginic acid",
+        "E401",
+        "alginate"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Polysaccharide from brown seaweed \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "cellulose",
+      "aliases": [
+        "microcrystalline cellulose",
+        "E460",
+        "cellulose gum",
+        "carboxymethyl cellulose",
+        "E466"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant fiber from wood pulp or cotton \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "inulin",
+      "aliases": [
+        "chicory root fiber",
+        "chicory extract",
+        "FOS",
+        "fructooligosaccharides"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Prebiotic fiber from chicory root \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "wheat starch",
+      "aliases": [
+        "starch from wheat"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Starch from wheat \u2014 vegan but contains gluten",
+      "allergens": [
+        "gluten",
+        "wheat"
+      ],
+      "health_flags": [
+        "contains gluten"
+      ],
+      "alternatives": "tapioca starch, potato starch",
+      "confidence": 0.99
+    },
+    {
+      "name": "corn flour",
+      "aliases": [
+        "cornflour",
+        "maize flour",
+        "masa harina"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Ground corn \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "vegetable oil",
+      "aliases": [
+        "vegetable shortening",
+        "hydrogenated vegetable oil",
+        "partially hydrogenated oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Blend of plant oils \u2014 vegan. Hydrogenated versions contain trans fats.",
+      "allergens": [],
+      "health_flags": [
+        "trans fats if hydrogenated"
+      ],
+      "alternatives": "specific plant oils",
+      "confidence": 0.97
+    },
+    {
+      "name": "rapeseed oil",
+      "aliases": [
+        "canola oil",
+        "RSPO"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Oil from rapeseed/canola plant \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "avocado oil",
+      "aliases": [
+        "avocado fruit oil"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Oil from avocado fruit \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "sodium bicarbonate",
+      "aliases": [
+        "baking soda",
+        "bicarb",
+        "E500"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Leavening mineral \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "ammonium bicarbonate",
+      "aliases": [
+        "E503",
+        "baker's ammonia",
+        "hartshorn"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Leavening agent \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "dipotassium phosphate",
+      "aliases": [
+        "E340",
+        "potassium phosphate"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Mineral salt emulsifier \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    },
+    {
+      "name": "coconut milk",
+      "aliases": [
+        "coconut cream",
+        "canned coconut milk"
+      ],
+      "category": "vegan",
+      "vegan_status": "vegan",
+      "vegetarian_status": "vegan",
+      "description": "Plant-based milk from coconut \u2014 vegan",
+      "allergens": [],
+      "health_flags": [],
+      "alternatives": "",
+      "confidence": 0.99
+    }
+  ]
+}
