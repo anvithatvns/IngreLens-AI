@@ -11,6 +11,7 @@ inject_css(); init_state(); render_sidebar()
 render_page_header("👤", "My Preferences", "Personalize IngreLens AI for your diet, allergen concerns, and health goals")
 
 prefs=st.session_state.get("user_prefs",{"diet":"None","allergens":[],"health_goals":[]})
+saved_profile = db.get_user_preferences(st.session_state.user_id) or {}
 cl,cr=st.columns([3,2])
 with cl:
     st.markdown("### 🥗 Diet Mode")
@@ -22,15 +23,46 @@ with cl:
     st.markdown("---\n### 🎯 Health Goals")
     g_opts=["Weight loss","Muscle gain","Diabetes-friendly","Heart health","Clean eating","Low sodium","Low sugar","High fiber","Anti-inflammatory"]
     sel_g=st.multiselect("",options=g_opts,default=prefs.get("health_goals",[]),label_visibility="collapsed")
+
+    st.markdown("---\n### 📏 Body Profile")
+    st.caption("Used to calculate your BMI and daily calorie/protein targets.")
+    bp1, bp2 = st.columns(2)
+    with bp1:
+        gender = st.selectbox("Gender", ["Female", "Male"],
+                               index=0 if (saved_profile.get("gender") or "Female") == "Female" else 1)
+        height_cm = st.number_input("Height (cm)", min_value=0.0, max_value=250.0,
+                                     value=float(saved_profile.get("height_cm") or 0), step=0.5)
+    with bp2:
+        age = st.number_input("Age", min_value=0, max_value=120,
+                               value=int(saved_profile.get("age") or 0), step=1)
+        weight_kg = st.number_input("Weight (kg)", min_value=0.0, max_value=300.0,
+                                     value=float(saved_profile.get("weight_kg") or 0), step=0.5)
+
     if st.button("💾 Save Preferences", type="primary"):
         st.session_state.user_prefs={"diet":diet,"allergens":sel_al,"health_goals":sel_g}
-        db.save_user_preferences(st.session_state.user_id, diet_type=diet, allergies=sel_al)
+        db.save_user_preferences(
+            st.session_state.user_id, diet_type=diet, allergies=sel_al,
+            gender=gender, age=age or None, height_cm=height_cm or None, weight_kg=weight_kg or None,
+        )
         log_activity("Preference Update", "Preferences")
         st.success("✅ Preferences saved!")
+        st.rerun()
 with cr:
     st.markdown("### 📋 Your Profile")
     p=st.session_state.get("user_prefs",{})
     st.markdown(f'<div style="background:{SAGE["offwhite"]};border-radius:14px;padding:1.4rem;border:1px solid {SAGE["pale"]}"><div style="margin-bottom:0.8rem"><b>Diet Mode</b><br><span style="color:{SAGE["mid"]};font-weight:600">{p.get("diet","Not set")}</span></div><div style="margin-bottom:0.8rem"><b>Allergen Alerts</b><br>{", ".join(p.get("allergens",[])) or "None"}</div><div><b>Health Goals</b><br>{", ".join(p.get("health_goals",[])) or "None"}</div></div>', unsafe_allow_html=True)
+
+    targets = db.compute_bmi_and_targets(
+        saved_profile.get("gender"), saved_profile.get("age"),
+        saved_profile.get("height_cm"), saved_profile.get("weight_kg"),
+    )
+    if targets:
+        st.markdown("---\n### ⚖️ BMI & Daily Targets")
+        b1, b2, b3 = st.columns(3)
+        b1.metric("BMI", targets["bmi"])
+        b2.metric("Daily kcal", targets["daily_calories"])
+        b3.metric("Daily Protein", f'{targets["daily_protein"]}g')
+
     st.markdown("---\n### 📊 Session Stats")
     h=st.session_state.get("history",[])
     c={}

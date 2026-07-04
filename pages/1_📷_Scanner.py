@@ -87,14 +87,14 @@ with tab1:
             ci, _ = st.columns([1, 4])
             with ci:
                 st.image(prod["image"], width=110)
-        full_analysis_display(result, prod)
+        full_analysis_display(result, prod, key_suffix="scanner_tab1_barcode")
         if st.button("🔄 Clear & Scan Again", key="btn_clear_bc_result", type="secondary"):
             clear_scanner_state()
             st.rerun()
 
     elif st.session_state.get("ocr_result"):
         st.markdown(f"## 📋 {st.session_state.get('ocr_result_name','Scanned Product')}")
-        full_analysis_display(st.session_state["ocr_result"])
+        full_analysis_display(st.session_state["ocr_result"], key_suffix="scanner_tab1_ocr")
         if st.button("🔄 Clear & Scan Again", key="btn_ocr_clear_result", type="secondary"):
             clear_scanner_state()
             st.rerun()
@@ -580,7 +580,7 @@ with tab2:
             ci2, _ = st.columns([1, 4])
             with ci2:
                 st.image(prod["image"], width=100)
-        full_analysis_display(result, prod)
+        full_analysis_display(result, prod, key_suffix="scanner_tab2_barcode")
         if st.button("🔄 Clear & Lookup Again", key="btn_bc_clear", type="secondary"):
             clear_scanner_state()
             st.rerun()
@@ -675,7 +675,7 @@ with tab3:
     if st.session_state.get("paste_result"):
         result = st.session_state["paste_result"]
         st.markdown(f"## 📋 {st.session_state.get('paste_result_name','Custom Product')}")
-        full_analysis_display(result)
+        full_analysis_display(result, key_suffix="scanner_tab3_paste")
         if st.button("🔄 Clear & Scan Again", key="btn_paste_clear", type="secondary"):
             clear_scanner_state()
             st.rerun()

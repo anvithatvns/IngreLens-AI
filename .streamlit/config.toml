@@ -9,6 +9,9 @@ font = "sans serif"
 maxUploadSize = 10
 enableStaticServing = true
 
+[client]
+showSidebarNavigation = false
+
 [browser]
 gatherUsageStats = false
 

@@ -178,12 +178,75 @@ def get_logo_b64(variant="brand"):
 
 BRAND_TAGLINE = "SCAN, ANALYSE & EAT SMARTER"
 
+def render_auth_bar():
+    """Global top-of-page bar: daily kcal target (if profile set) + Login / Hi [Name]."""
+    prefs = db.get_user_preferences(st.session_state.get("user_id", "")) if st.session_state.get("user_id") else None
+    targets = None
+    if prefs:
+        targets = db.compute_bmi_and_targets(
+            prefs.get("gender"), prefs.get("age"), prefs.get("height_cm"), prefs.get("weight_kg")
+        )
+
+    c1, c2 = st.columns([5, 2])
+    with c1:
+        if targets:
+            st.markdown(
+                f'<div style="font-size:0.78rem;color:{SAGE["stone"]};padding-top:8px">'
+                f'🎯 Daily Target: <b style="color:{SAGE["mid"]}">{targets["daily_calories"]} kcal</b></div>',
+                unsafe_allow_html=True,
+            )
+    with c2:
+        auth = st.session_state.get("auth_user")
+        if auth:
+            ac1, ac2 = st.columns([2, 1])
+            with ac1:
+                st.markdown(
+                    f'<div style="text-align:right;font-weight:600;padding-top:6px;color:{SAGE["charcoal"]}">'
+                    f'Hi, {auth["name"] or auth["email"]}</div>',
+                    unsafe_allow_html=True,
+                )
+            with ac2:
+                if st.button("Logout", key="btn_logout_header", use_container_width=True):
+                    do_logout()
+                    st.rerun()
+        else:
+            with st.popover("🔐 Login", use_container_width=True):
+                tab_in, tab_up = st.tabs(["Sign In", "Sign Up"])
+                with tab_in:
+                    email = st.text_input("Email", key="login_email")
+                    pw = st.text_input("Password", type="password", key="login_pw")
+                    if st.button("Sign In", key="btn_signin", type="primary", use_container_width=True):
+                        user = db.authenticate(email, pw)
+                        if user:
+                            do_login(user)
+                            st.rerun()
+                        else:
+                            st.error("Invalid email or password.")
+                    st.caption("Demo: test123@gmail.com / test123")
+                with tab_up:
+                    name = st.text_input("Name", key="signup_name")
+                    email2 = st.text_input("Email", key="signup_email")
+                    pw2 = st.text_input("Password", type="password", key="signup_pw")
+                    if st.button("Sign Up", key="btn_signup", type="primary", use_container_width=True):
+                        if not (name and email2 and pw2):
+                            st.error("All fields are required.")
+                        else:
+                            uid = db.create_account(name, email2, pw2)
+                            if uid:
+                                do_login(db.get_user_by_email(email2))
+                                st.rerun()
+                            else:
+                                st.error("That email is already registered.")
+
+
 def render_page_header(page_icon: str, page_title: str, page_subtitle: str = ""):
     """
     Shared global header used on every page.
     Shows: larger logo + IngreLens AI branding + page title + subtitle.
     Call this at the top of every page instead of duplicating hero HTML.
     """
+    render_auth_bar()
+    render_floating_assistant()
     b64 = get_logo_b64("header")
     logo_img = (
         f'<img src="data:image/png;base64,{b64}" '
@@ -270,31 +333,15 @@ def render_sidebar():
             unsafe_allow_html=True,
         )
 
-        # ── Navigation ────────────────────────────────────────────────────────
-        st.markdown(
-            '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.18);margin:6px 0 10px">'
-            '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;'
-            'text-transform:uppercase;opacity:0.5;margin-bottom:6px;color:white">Navigation</div>',
-            unsafe_allow_html=True,
-        )
-        nav_items = [
-            ("🏠", "IngreLens AI Home"),  # matches pages.toml name
-            ("📷", "Scanner"),
-            ("🔍", "Analyzer"),
-            ("🤖", "AI Assistant"),
-            ("⚖️", "Compare"),
-            ("👤", "Preferences"),
-            ("📚", "History"),
-        ]
-        for icon, label in nav_items:
-            st.markdown(
-                f'<div style="display:flex;align-items:center;gap:8px;'
-                f'padding:6px 10px;font-size:0.85rem;color:rgba(255,255,255,0.88);'
-                f'border-radius:8px;margin-bottom:1px">'
-                f'<span style="font-size:1rem">{icon}</span>'
-                f'<span style="font-weight:500">{label}</span></div>',
-                unsafe_allow_html=True,
-            )
+        # ── Navigation (native sidebar nav disabled via showSidebarNavigation
+        # so the logo can sit above it instead of below Streamlit's own "app"
+        # header) ────────────────────────────────────────────────────────────
+        st.page_link("app.py", label="IngreLens AI", icon="🏠")
+        st.page_link("pages/1_📷_Scanner.py", label="Scanner", icon="📷")
+        st.page_link("pages/2_🔍_Analyzer.py", label="Analyzer", icon="🔍")
+        st.page_link("pages/4_⚖️_Comparison.py", label="Comparison", icon="⚖️")
+        st.page_link("pages/5_👤_Preferences.py", label="Preferences", icon="👤")
+        st.page_link("pages/6_📚_History.py", label="History", icon="📚")
 
         # ── Active Agents ─────────────────────────────────────────────────────
         st.markdown(
@@ -355,9 +402,14 @@ def render_sidebar():
                 unsafe_allow_html=True,
             )
 
-@st.cache_resource(show_spinner=False)
 def _ensure_db_ready():
-    """Create ingrelens.db and its tables once per process, if missing."""
+    """Create ingrelens.db and its tables if missing.
+
+    Not cached: db.init_db() is itself idempotent (CREATE TABLE IF NOT
+    EXISTS + seed-if-missing), and skipping that check via cache_resource
+    meant a db file deleted/reset after the first run stayed table-less
+    (and demo login broken) for the rest of the process's life.
+    """
     db.init_db()
     return True
 
@@ -370,20 +422,38 @@ def init_state():
         if k not in st.session_state:
             st.session_state[k] = v
 
-    # Local persistent identity (no auth in this app) — survives restarts
-    # and browser sessions so preferences/history don't need reconfiguring.
+    # Local persistent identity — survives restarts and browser sessions so
+    # preferences/history don't need reconfiguring, even before signing in.
     if "user_id" not in st.session_state:
-        st.session_state.user_id = db.get_or_create_local_user()
-        saved_prefs = db.get_user_preferences(st.session_state.user_id)
-        if saved_prefs:
-            st.session_state.user_prefs = {
-                "diet": saved_prefs.get("diet_type") or "None",
-                "allergens": saved_prefs.get("allergies") or [],
-                "health_goals": st.session_state.user_prefs.get("health_goals", []),
-            }
-        # One-time load of persisted scan history so History/Preferences pages
-        # show past scans immediately after an app restart or new browser session.
-        st.session_state.history = _load_history_from_db(st.session_state.user_id)
+        _activate_user(db.get_or_create_local_user())
+
+
+def _activate_user(user_id: str):
+    """Point session state at user_id's saved preferences/history — used on
+    first load, and again on login/logout to make History user-specific."""
+    st.session_state.user_id = user_id
+    saved_prefs = db.get_user_preferences(user_id)
+    if saved_prefs:
+        st.session_state.user_prefs = {
+            "diet": saved_prefs.get("diet_type") or "None",
+            "allergens": saved_prefs.get("allergies") or [],
+            "health_goals": st.session_state.get("user_prefs", {}).get("health_goals", []),
+        }
+    else:
+        st.session_state.user_prefs = {"diet": "None", "allergens": [], "health_goals": []}
+    st.session_state.history = _load_history_from_db(user_id)
+
+
+def do_login(user: dict):
+    st.session_state.auth_user = {
+        "user_id": user["user_id"], "name": user.get("name") or "", "email": user.get("email") or "",
+    }
+    _activate_user(user["user_id"])
+
+
+def do_logout():
+    st.session_state.pop("auth_user", None)
+    _activate_user(db.get_or_create_local_user())
 
 
 def _load_history_from_db(user_id: str) -> list:
@@ -594,6 +664,42 @@ def render_nutriscore(ns):
                 unsafe_allow_html=True,
             )
 
+def render_nutrition_pie(nutriments: dict, key_suffix: str = ""):
+    """Responsive pie of the 6 tracked macros — st.columns already stacks
+    this beside the nutrition table on desktop and below it on mobile."""
+    # Validated categorical palette (dataviz skill, palette.md slots 1-6) —
+    # fixed hue order, never reassigned by rank, passes CVD/lightness/chroma checks.
+    fields = [
+        ("Energy (kcal)", "energy", "#2a78d6"),
+        ("Protein", "protein", "#1baf7a"),
+        ("Sugars", "sugars", "#eda100"),
+        ("Fiber", "fiber", "#008300"),
+        ("Salt", "salt", "#4a3aa7"),
+        ("Fat", "fat", "#e34948"),
+    ]
+    labels, values, colors = [], [], []
+    for lbl, key, color in fields:
+        v = nutriments.get(key)
+        if v:
+            labels.append(lbl)
+            values.append(float(v))
+            colors.append(color)
+    if len(values) < 2:
+        return
+    try:
+        import plotly.express as px
+        fig = px.pie(names=labels, values=values, hole=0.45,
+                     color=labels, color_discrete_sequence=colors)
+        fig.update_traces(textposition="inside", textinfo="percent+label", showlegend=True)
+        fig.update_layout(height=230, margin=dict(t=10, b=0, l=0, r=0),
+                           paper_bgcolor="rgba(0,0,0,0)",
+                           legend=dict(font=dict(size=10)))
+        chart_key = f"nutrition_pie_{key_suffix}_{'_'.join(labels)}"[:150]
+        st.plotly_chart(fig, use_container_width=True, key=chart_key)
+    except ImportError:
+        st.caption("Install plotly for the nutrition chart: `pip install plotly`")
+
+
 def render_ingredient_cards(results, status_filter=None):
     icons  = {"non-vegan": "❌", "uncertain": "⚠️", "vegan": "✅", "usually vegan": "✅", "usually non-vegan": "❌"}
     css_map = {"non-vegan": "ing-card-nv", "uncertain": "ing-card-unc", "vegan": "ing-card-vegan", "usually vegan": "ing-card-vegan"}
@@ -622,6 +728,134 @@ def render_allergen_pills(allergens):
         unsafe_allow_html=True,
     )
 
+@st.cache_resource(show_spinner=False)
+def _get_assistant_agent():
+    from backend.services.analysis_service import IngredientAnalysisService
+    from backend.services.llm_service import IngredientAnalystAgent
+    return IngredientAnalystAgent(IngredientAnalysisService())
+
+
+# Keyword → canned answer for questions about using the app itself (as opposed
+# to ingredient/nutrition questions, which go to the LLM agent below).
+_APP_HELP_FAQ = [
+    (("bmi", "body mass"),
+     "Your **BMI** is calculated automatically on the Preferences page once you enter "
+     "Gender, Age, Height and Weight — it also shows your Daily Calorie and Daily Protein "
+     "targets under 'Your Profile'."),
+    (("daily target", "daily calor", "calorie target"),
+     "Your **Daily Calorie Target** shows in the header on every page once your profile "
+     "(gender/age/height/weight) is saved in Preferences (👤)."),
+    (("check button", "consumption", "how many calories", "remaining calor", "calories left"),
+     "After analyzing a product, click the **Check** button below the results to log it and "
+     "see calories/protein/fat/sugar consumed today vs. your daily allowance, with a comparison chart."),
+    (("history", "past scan", "previous scan"),
+     "Your **History** page (📚) lists every past scan with charts and a JSON export — it's "
+     "specific to your signed-in account."),
+    (("preference", "allerg", "diet type", "vegan setting", "dietary alert"),
+     "Set diet type, allergies and your body profile under **Preferences** (👤) — they're saved "
+     "automatically and used to flag conflicts (e.g. a vegan scanning dairy) right after each scan."),
+    (("sign up", "sign in", "log in", "login", "account", "register"),
+     "Click **🔐 Login** at the top-right of any page to sign in or create an account. "
+     "Demo login: test123@gmail.com / test123."),
+    (("compare", "comparison"),
+     "Use the **Comparison** page (⚖️) to analyze two products side-by-side, including a "
+     "nutrition breakdown for each."),
+    (("scan", "barcode", "upload", "ocr", "label"),
+     "Use the **Scanner** page (📷) to scan a barcode with your camera, upload a label photo "
+     "for OCR, or paste ingredients directly."),
+]
+
+
+def _match_app_faq(question: str):
+    q = question.lower()
+    for keywords, answer in _APP_HELP_FAQ:
+        if any(k in q for k in keywords):
+            return answer
+    return None
+
+
+def ask_assistant(question: str) -> str:
+    faq = _match_app_faq(question)
+    if faq:
+        return faq
+    try:
+        return _get_assistant_agent().answer(question)
+    except Exception as e:
+        return f"Sorry, I couldn't process that right now ({e})."
+
+
+def render_floating_assistant():
+    """Global floating chat FAB (bottom-right) — replaces the AI Assistant nav
+    page. Answers both ingredient questions (via the existing LLM agent) and
+    app-usage questions (via a small local FAQ), without touching either."""
+    if "ai_widget_open" not in st.session_state:
+        st.session_state.ai_widget_open = False
+    if "ai_widget_messages" not in st.session_state:
+        st.session_state.ai_widget_messages = []
+
+    st.markdown(
+        """
+        <style>
+        .st-key-ai_fab_btn {
+            position: fixed !important; bottom: 24px; right: 24px; z-index: 10000;
+            width: 58px !important; height: 58px !important;
+        }
+        .st-key-ai_fab_btn .stButton>button {
+            width: 58px; height: 58px; border-radius: 50% !important;
+            font-size: 1.5rem !important; padding: 0 !important;
+            box-shadow: 0 6px 22px rgba(45,74,62,0.4) !important;
+            transition: transform .18s ease !important;
+        }
+        .st-key-ai_fab_btn .stButton>button:hover { transform: scale(1.08) translateY(-2px) !important; }
+        .st-key-ai_panel {
+            position: fixed; bottom: 92px; right: 24px; z-index: 9999;
+            width: 350px; max-width: 88vw; max-height: 60vh; overflow-y: auto;
+            background: var(--background-color, white); border-radius: 16px;
+            box-shadow: 0 14px 44px rgba(0,0,0,0.28); border: 1px solid #e2edeb;
+            padding: 12px 14px 6px; animation: ilSlideUp .28s cubic-bezier(.2,.9,.3,1);
+        }
+        @keyframes ilSlideUp {
+            from { opacity: 0; transform: translateY(18px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @media (max-width: 640px) {
+            .st-key-ai_panel { right: 12px; bottom: 84px; width: 82vw; }
+            .st-key-ai_fab_btn { right: 14px; bottom: 14px; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="ai_fab_btn"):
+        if st.button("✕" if st.session_state.ai_widget_open else "🤖", key="ai_fab_toggle_btn"):
+            st.session_state.ai_widget_open = not st.session_state.ai_widget_open
+            st.rerun()
+
+    if not st.session_state.ai_widget_open:
+        return
+
+    with st.container(key="ai_panel"):
+        st.markdown(
+            f'<div style="font-weight:700;font-size:0.92rem;color:{SAGE["charcoal"]};'
+            f'margin-bottom:6px">🤖 IngreLens Assistant</div>',
+            unsafe_allow_html=True,
+        )
+        if not st.session_state.ai_widget_messages:
+            st.caption("Ask about ingredients, allergens, or how to use the app (BMI, History, Check, Preferences…).")
+        for msg in st.session_state.ai_widget_messages[-8:]:
+            with st.chat_message(msg["role"], avatar="🤖" if msg["role"] == "assistant" else "👤"):
+                st.markdown(msg["content"])
+
+        q = st.chat_input("Ask a question…", key="ai_widget_input")
+        if q:
+            st.session_state.ai_widget_messages.append({"role": "user", "content": q})
+            with st.spinner("Thinking…"):
+                ans = ask_assistant(q)
+            st.session_state.ai_widget_messages.append({"role": "assistant", "content": ans})
+            st.rerun()
+
+
 def render_agent_row():
     st.markdown(
         f'<div style="margin:0.5rem 0 1rem">'
@@ -634,7 +868,107 @@ def render_agent_row():
         unsafe_allow_html=True,
     )
 
-def full_analysis_display(result, product=None):
+@st.dialog("🍽️ Daily Consumption Check")
+def _show_consumption_dialog():
+    user_id = st.session_state.get("user_id")
+    daily = db.get_daily_consumption(user_id)
+    profile = db.get_user_preferences(user_id) or {}
+    targets = db.compute_bmi_and_targets(
+        profile.get("gender"), profile.get("age"), profile.get("height_cm"), profile.get("weight_kg")
+    )
+
+    if not targets:
+        st.info("Set Gender/Age/Height/Weight in **Preferences** to compare against your daily allowance.")
+        st.markdown(
+            f"**Consumed today:** {daily['calories']:.0f} kcal · {daily['protein']:.1f}g protein · "
+            f"{daily['fat']:.1f}g fat · {daily['sugar']:.1f}g sugar"
+        )
+        return
+
+    fat_target = round(targets["daily_calories"] * 0.3 / 9)  # ~30% of calories from fat
+    remaining_cal = max(targets["daily_calories"] - daily["calories"], 0)
+    remaining_protein = max(targets["daily_protein"] - daily["protein"], 0)
+    remaining_fat = max(fat_target - daily["fat"], 0)
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Calories", f'{daily["calories"]:.0f} / {targets["daily_calories"]}', f'{remaining_cal:.0f} left')
+    c2.metric("Protein", f'{daily["protein"]:.1f}g / {targets["daily_protein"]}g', f'{remaining_protein:.1f}g left')
+    c3.metric("Fat", f'{daily["fat"]:.1f}g / {fat_target}g', f'{remaining_fat:.1f}g left')
+    st.caption(f'Sugar consumed today: {daily["sugar"]:.1f}g')
+
+    try:
+        import plotly.express as px
+        fig = px.pie(
+            names=["Consumed", "Remaining"],
+            values=[daily["calories"], remaining_cal],
+            hole=0.5, color=["Consumed", "Remaining"],
+            color_discrete_map={"Consumed": "#e34948", "Remaining": "#1baf7a"},
+        )
+        fig.update_traces(textinfo="percent+label")
+        fig.update_layout(height=240, margin=dict(t=30, b=0, l=0, r=0),
+                           paper_bgcolor="rgba(0,0,0,0)", title="Calories: Consumed vs Remaining")
+        st.plotly_chart(fig, use_container_width=True, key="consumption_check_pie")
+    except ImportError:
+        st.caption("Install plotly for the comparison chart: `pip install plotly`")
+
+
+def render_consumption_checker(result, product=None, key_suffix=""):
+    """'Check' button below scan results — logs the product's nutrients for
+    today and opens a modal comparing consumption vs. the user's daily target."""
+    nm = (product or {}).get("nutriments", {}) or {}
+    if not any(nm.values()):
+        return
+    name = getattr(result, "product_name", "Product")
+    btn_key = f"check_consumption_{key_suffix}_{name}"[:150]
+    if st.button("✅ Check Daily Consumption", key=btn_key,
+                 help="Log this product and see today's intake vs. your daily target"):
+        db.log_consumption(
+            st.session_state.get("user_id"), name,
+            calories=nm.get("energy") or 0, protein=nm.get("protein") or 0,
+            fat=nm.get("fat") or 0, sugar=nm.get("sugars") or 0,
+        )
+        log_activity("Consumption Check", "Analysis")
+        _show_consumption_dialog()
+
+
+def render_dietary_alerts(result):
+    """Cross-check this analysis against the signed-in user's saved diet/allergies."""
+    prefs = st.session_state.get("user_prefs", {})
+    diet = prefs.get("diet") or "None"
+    user_allergens = [a.lower() for a in prefs.get("allergens", [])]
+    detected_allergens = [a.lower() for a in (result.allergens_detected or [])]
+    diet_category = getattr(result, "diet_category", result.overall_vegan)
+
+    conflicts = []
+    if diet == "Vegan" and diet_category != "Vegan":
+        conflicts.append(f"You follow a **Vegan** diet, but this product is classified **{diet_category}**.")
+    elif diet == "Vegetarian" and diet_category == "Non-Vegetarian":
+        conflicts.append(f"You follow a **Vegetarian** diet, but this product is **{diet_category}**.")
+    elif diet == "Dairy-Free" and any("dairy" in a or "milk" in a for a in detected_allergens):
+        conflicts.append("You've set **Dairy-Free**, but dairy was detected in this product.")
+    elif diet == "Nut-Free" and any("nut" in a for a in detected_allergens):
+        conflicts.append("You've set **Nut-Free**, but nuts were detected in this product.")
+
+    for ua in user_allergens:
+        for da in detected_allergens:
+            if ua == da or ua in da or da in ua or (ua == "tree nuts" and "nut" in da):
+                conflicts.append(f"Contains **{da.title()}** — matches your saved **{ua.title()}** allergy.")
+                break
+
+    conflicts = list(dict.fromkeys(conflicts))
+    if conflicts:
+        items = "".join(f'<div style="font-size:0.86rem;color:#6b2a1e;margin:3px 0">• {c}</div>' for c in conflicts)
+        st.markdown(
+            f'<div style="background:#fde8e5;border-left:5px solid #b84a3a;border-radius:12px;'
+            f'padding:1rem 1.2rem;margin-bottom:1rem">'
+            f'<div style="font-weight:700;color:#8b2a1e;margin-bottom:6px">🚨 Dietary Conflict Alert</div>'
+            f'{items}</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def full_analysis_display(result, product=None, key_suffix="main"):
+    render_dietary_alerts(result)
     render_verdict_card(result)
     render_agent_row()
     render_metrics(result)
@@ -681,21 +1015,27 @@ def full_analysis_display(result, product=None):
 
             nm = product.get("nutriments", {}) or {}
             if any(nm.values()):
-                st.markdown('<div class="shdr">Nutrition / 100g</div>', unsafe_allow_html=True)
-                def fmt(v, u="g"):
-                    return f"{float(v):.1f} {u}" if v is not None else "—"
-                for lbl, key, unit in [
-                    ("🔥 Energy","energy","kcal"), ("🫀 Fat","fat","g"),
-                    ("🍬 Sugars","sugars","g"),    ("💪 Protein","protein","g"),
-                    ("🧂 Salt","salt","g"),         ("🌾 Fiber","fiber","g"),
-                ]:
-                    ca, cb = st.columns([3, 2])
-                    ca.caption(lbl)
-                    cb.markdown(f"**{fmt(nm.get(key), unit)}**")
+                nut_tbl_col, nut_chart_col = st.columns([1, 1])
+                with nut_tbl_col:
+                    st.markdown('<div class="shdr">Nutrition / 100g</div>', unsafe_allow_html=True)
+                    def fmt(v, u="g"):
+                        return f"{float(v):.1f} {u}" if v is not None else "—"
+                    for lbl, key, unit in [
+                        ("🔥 Energy","energy","kcal"), ("🫀 Fat","fat","g"),
+                        ("🍬 Sugars","sugars","g"),    ("💪 Protein","protein","g"),
+                        ("🧂 Salt","salt","g"),         ("🌾 Fiber","fiber","g"),
+                    ]:
+                        ca, cb = st.columns([3, 2])
+                        ca.caption(lbl)
+                        cb.markdown(f"**{fmt(nm.get(key), unit)}**")
+                with nut_chart_col:
+                    render_nutrition_pie(nm, key_suffix=key_suffix)
 
             if product.get("allergens"):
                 st.markdown('<div class="shdr">Package Allergen Warnings</div>', unsafe_allow_html=True)
                 render_allergen_pills(product["allergens"])
+
+            render_consumption_checker(result, product, key_suffix=key_suffix)
 
         if result.ultra_processed_markers:
             st.markdown('<div class="shdr">🏭 Ultra-Processed</div>', unsafe_allow_html=True)

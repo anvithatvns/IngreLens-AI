@@ -16,13 +16,15 @@ Design notes:
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import secrets
 import sqlite3
 import sys
 import uuid
 from contextlib import contextmanager
 from dataclasses import asdict, is_dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -59,17 +61,36 @@ def get_connection():
 
 def init_db() -> bool:
     """Create the database file and all tables if they don't already exist."""
-    from backend.db.schema import SCHEMA_STATEMENTS
+    from backend.db.schema import TABLE_STATEMENTS, COLUMN_MIGRATIONS, INDEX_STATEMENTS
     try:
         DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         with get_connection() as conn:
-            for stmt in SCHEMA_STATEMENTS:
+            for stmt in TABLE_STATEMENTS:
+                conn.execute(stmt)
+            for table, column, ddl in COLUMN_MIGRATIONS:
+                existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+                if column not in existing:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+            for stmt in INDEX_STATEMENTS:
                 conn.execute(stmt)
         logger.info(f"SQLite database ready at {DB_PATH}")
+        _seed_demo_user()
         return True
     except Exception as e:
         logger.error(f"Failed to initialize SQLite database: {e}")
         return False
+
+
+def _seed_demo_user() -> None:
+    """Seed the capstone demo login: Anvitha / test123@gmail.com / test123."""
+    try:
+        if get_user_by_email("test123@gmail.com"):
+            return
+        user_id = str(uuid.uuid4())
+        _touch_user(user_id, "Anvitha")
+        set_password(user_id, "test123@gmail.com", "test123")
+    except Exception as e:
+        logger.error(f"Failed to seed demo user: {e}")
 
 
 # ── Users ──────────────────────────────────────────────────────────────────
@@ -112,23 +133,84 @@ def _touch_user(user_id: str, name: str = "Guest") -> None:
         logger.error(f"Failed to upsert user {user_id}: {e}")
 
 
+# ── Authentication ───────────────────────────────────────────────────────────
+def _hash_password(password: str, salt: str = None) -> tuple:
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.sha256((salt + password).encode()).hexdigest()
+    return digest, salt
+
+
+def get_user_by_email(email: str) -> Optional[dict]:
+    try:
+        with get_connection() as conn:
+            row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        return dict(row) if row else None
+    except Exception as e:
+        logger.error(f"Failed to look up user by email {email!r}: {e}")
+        return None
+
+
+def create_account(name: str, email: str, password: str) -> Optional[str]:
+    """Sign-up: create a new user identity with a hashed password. Returns user_id, or None if the email is taken."""
+    if get_user_by_email(email):
+        return None
+    user_id = str(uuid.uuid4())
+    _touch_user(user_id, name)
+    if set_password(user_id, email, password):
+        return user_id
+    return None
+
+
+def set_password(user_id: str, email: str, password: str) -> bool:
+    digest, salt = _hash_password(password)
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE users SET email = ?, password_hash = ?, password_salt = ? WHERE user_id = ?",
+                (email, digest, salt, user_id),
+            )
+        return True
+    except Exception as e:
+        logger.error(f"Failed to set password for {user_id}: {e}")
+        return False
+
+
+def authenticate(email: str, password: str) -> Optional[dict]:
+    """Sign-in: returns the user row on success, None on bad credentials."""
+    user = get_user_by_email(email)
+    if not user or not user.get("password_hash"):
+        return None
+    digest, _ = _hash_password(password, user.get("password_salt") or "")
+    if secrets.compare_digest(digest, user["password_hash"]):
+        _touch_user(user["user_id"], user.get("name") or "")
+        return user
+    return None
+
+
 # ── User preferences ─────────────────────────────────────────────────────────
 def save_user_preferences(user_id: str, diet_type: str = "", allergies=None,
-                           preferred_language: str = "English") -> bool:
+                           preferred_language: str = "English", gender: str = None,
+                           age: int = None, height_cm: float = None, weight_kg: float = None) -> bool:
     allergies_json = json.dumps(allergies or [])
     try:
         with get_connection() as conn:
             now = _now()
             conn.execute(
                 """INSERT INTO user_preferences
-                       (user_id, diet_type, allergies, preferred_language, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?)
+                       (user_id, diet_type, allergies, preferred_language,
+                        gender, age, height_cm, weight_kg, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(user_id) DO UPDATE SET
                        diet_type=excluded.diet_type,
                        allergies=excluded.allergies,
                        preferred_language=excluded.preferred_language,
+                       gender=COALESCE(excluded.gender, user_preferences.gender),
+                       age=COALESCE(excluded.age, user_preferences.age),
+                       height_cm=COALESCE(excluded.height_cm, user_preferences.height_cm),
+                       weight_kg=COALESCE(excluded.weight_kg, user_preferences.weight_kg),
                        updated_at=excluded.updated_at""",
-                (user_id, diet_type, allergies_json, preferred_language, now, now),
+                (user_id, diet_type, allergies_json, preferred_language,
+                 gender, age, height_cm, weight_kg, now, now),
             )
         return True
     except Exception as e:
@@ -149,6 +231,24 @@ def get_user_preferences(user_id: str) -> Optional[dict]:
         return d
     except Exception as e:
         logger.error(f"Failed to load preferences for {user_id}: {e}")
+        return None
+
+
+def compute_bmi_and_targets(gender: str, age: int, height_cm: float, weight_kg: float) -> Optional[dict]:
+    """Mifflin-St Jeor BMR + moderate-activity multiplier (1.55) for a simple daily target."""
+    if not (age and height_cm and weight_kg):
+        return None
+    try:
+        bmi = round(weight_kg / ((height_cm / 100) ** 2), 1)
+        if (gender or "").lower().startswith("f"):
+            bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age - 161
+        else:
+            bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + 5
+        daily_calories = round(bmr * 1.55)
+        daily_protein = round(weight_kg * 0.8)
+        return {"bmi": bmi, "daily_calories": daily_calories, "daily_protein": daily_protein}
+    except Exception as e:
+        logger.error(f"Failed to compute BMI/targets: {e}")
         return None
 
 
@@ -310,3 +410,38 @@ def log_activity(user_id: str, action: str, page: str = "") -> bool:
     except Exception as e:
         logger.error(f"Failed to log activity {action!r} for {user_id}: {e}")
         return False
+
+
+# ── Consumption tracking (for the daily-intake checker) ─────────────────────
+def log_consumption(user_id: str, product_name: str, calories: float = 0,
+                     protein: float = 0, fat: float = 0, sugar: float = 0) -> bool:
+    try:
+        with get_connection() as conn:
+            now = _now()
+            conn.execute(
+                """INSERT INTO consumption_log
+                       (user_id, product_name, calories, protein, fat, sugar, log_date, timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (user_id, product_name, calories or 0, protein or 0, fat or 0, sugar or 0,
+                 date.today().isoformat(), now),
+            )
+        return True
+    except Exception as e:
+        logger.error(f"Failed to log consumption for {user_id}: {e}")
+        return False
+
+
+def get_daily_consumption(user_id: str, log_date: str = None) -> dict:
+    log_date = log_date or date.today().isoformat()
+    try:
+        with get_connection() as conn:
+            row = conn.execute(
+                """SELECT COALESCE(SUM(calories),0) AS calories, COALESCE(SUM(protein),0) AS protein,
+                          COALESCE(SUM(fat),0) AS fat, COALESCE(SUM(sugar),0) AS sugar
+                   FROM consumption_log WHERE user_id = ? AND log_date = ?""",
+                (user_id, log_date),
+            ).fetchone()
+        return dict(row) if row else {"calories": 0, "protein": 0, "fat": 0, "sugar": 0}
+    except Exception as e:
+        logger.error(f"Failed to load daily consumption for {user_id}: {e}")
+        return {"calories": 0, "protein": 0, "fat": 0, "sugar": 0}

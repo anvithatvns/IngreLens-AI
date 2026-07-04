@@ -24,6 +24,8 @@ vector_store/chroma_db/
 
 # Local SQLite persistence (regenerates automatically, holds local user data)
 ingrelens.db
+ingrelens.db-shm
+ingrelens.db-wal
 .ingrelens_uid
 
 # Test artifacts

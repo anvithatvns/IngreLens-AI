@@ -217,7 +217,7 @@ if "ar" in st.session_state and "ap" in st.session_state:
     prod   = st.session_state["ap"]
     st.markdown(f"## 📋 Analysis: {prod['name']}")
     st.caption(f"Brand: {prod.get('brand','—')}  ·  Barcode: {prod.get('barcode','—')}")
-    full_analysis_display(result, prod)
+    full_analysis_display(result, prod, key_suffix="analyzer_main")
     if st.button("✕ Clear & search again", key="clear_result"):
         del st.session_state["ar"], st.session_state["ap"]
         st.session_state.pop("analyzer_products", None)

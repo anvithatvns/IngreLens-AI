@@ -6,7 +6,8 @@ from shared_ui import (inject_css, init_state, render_sidebar, render_page_heade
                         render_verdict_card, render_health_score, render_nutriscore,
                         render_allergen_pills, render_ingredient_cards,
                         verdict_emoji, verdict_color, get_logo_b64, SAGE,
-                        cached_analyze, log_activity)
+                        cached_analyze, log_activity, render_nutrition_pie, render_dietary_alerts,
+                        render_consumption_checker)
 from backend.services.analysis_service import IngredientAnalysisService
 from backend.services.product_service import ProductFetchService
 
@@ -153,8 +154,9 @@ def show_comparison(ra, rb, pa, pb):
 
     # ── Side-by-side detail cards ─────────────────────────────────────────────
     col_l, col_r = st.columns(2)
-    for col, result, prod in [(col_l, ra, pa), (col_r, rb, pb)]:
+    for tag, col, result, prod in [("a", col_l, ra, pa), ("b", col_r, rb, pb)]:
         with col:
+            render_dietary_alerts(result)
             cat = getattr(result, "diet_category", result.overall_vegan)
             dc  = DIET_COLORS.get(cat, SAGE["stone"])
             di  = DIET_ICONS.get(cat, cat)
@@ -193,6 +195,12 @@ def show_comparison(ra, rb, pa, pb):
                     unsafe_allow_html=True,
                 )
                 render_nutriscore(prod["nutriscore"])
+
+            nm_side = prod.get("nutriments", {}) or {}
+            if any(nm_side.values()):
+                render_nutrition_pie(nm_side, key_suffix=tag)
+
+            render_consumption_checker(result, prod, key_suffix=tag)
 
     # ── Summary ───────────────────────────────────────────────────────────────
     st.markdown("---\n### 🏆 Summary")
