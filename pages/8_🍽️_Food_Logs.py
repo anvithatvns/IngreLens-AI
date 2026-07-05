@@ -40,7 +40,18 @@ s1, s2, s3, s4 = st.columns(4)
 s1.metric("Total Calories", f'{daily["calories"]:.0f} kcal')
 s2.metric("Total Protein", f'{daily["protein"]:.1f}g')
 s3.metric("Total Fat", f'{daily["fat"]:.1f}g')
-s4.metric("Remaining", f'{remaining_cal:.0f} kcal', f'of {targets["daily_calories"]} target')
+with s4:
+    with st.container(key="il_remaining_tile"):
+        st.metric("Remaining", f'{remaining_cal:.0f} kcal', f'of {targets["daily_calories"]} target')
+        # Same non-blocking red-border warning as the Home Daily Target pill —
+        # logging more food is still allowed, this is purely informational.
+        if remaining_cal <= 0:
+            st.markdown(
+                '<style>.st-key-il_remaining_tile [data-testid="stMetric"]{'
+                'border:1px solid #e5584a!important;border-radius:12px;padding:8px 12px;'
+                'box-shadow:0 2px 12px rgba(229,88,74,0.35)!important;}</style>',
+                unsafe_allow_html=True,
+            )
 
 st.progress(pct / 100, text=f"{pct}% of daily calorie target used")
 st.markdown("")

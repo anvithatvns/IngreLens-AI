@@ -49,7 +49,7 @@ header[data-testid="stHeader"]{{background:transparent}}
   border-bottom:1px solid rgba(232,255,214,0.08);
 }}
 .st-key-il_topnav [data-testid="stHorizontalBlock"]{{align-items:center}}
-.il-topnav-brand{{display:flex;align-items:center;gap:8px;white-space:nowrap}}
+.il-topnav-brand{{display:flex;align-items:center;gap:12px;white-space:nowrap;padding-left:6px}}
 .il-topnav-word{{font-weight:800;font-size:1.02rem;letter-spacing:-0.01em;color:{SAGE['charcoal']}}}
 .il-topnav-word b{{color:{SAGE['mid']}}}
 
@@ -69,6 +69,15 @@ header[data-testid="stHeader"]{{background:transparent}}
   white-space:nowrap!important;
 }}
 .st-key-il_topnav_links [data-testid="stPageLink"][aria-current="page"] p{{color:{SAGE['charcoal']}!important}}
+/* Profile dropdown trigger — same transparent pill look as the page-link items beside it */
+.st-key-il_topnav_links [data-testid="stPopoverButton"]{{
+  border-radius:10px!important;padding:6px 3px!important;background:transparent!important;
+  border:none!important;box-shadow:none!important;font-size:0.9rem!important;font-weight:700!important;
+  color:{SAGE['stone']}!important;transition:background .22s ease, transform .22s ease!important;
+}}
+.st-key-il_topnav_links [data-testid="stPopoverButton"]:hover{{
+  background:rgba(232,255,214,0.06)!important;transform:translateY(-1px)!important;
+}}
 
 /* Mobile hamburger toggle — hidden on desktop, shown under the breakpoint */
 .st-key-il_topnav_toggle{{display:none}}
@@ -92,13 +101,6 @@ header[data-testid="stHeader"]{{background:transparent}}
   .st-key-il_mobile_nav_panel{{display:none!important}}
 }}
 
-/* ── STICKY GLASS HEADER (auth bar) ── */
-.st-key-il_authbar{{
-  position:sticky;top:0;z-index:999;padding:10px 4px;margin:-0.5rem -0.25rem 0.75rem;
-  background:rgba(6,10,18,0.72);backdrop-filter:blur(14px) saturate(160%);
-  -webkit-backdrop-filter:blur(14px) saturate(160%);
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}}
 .il-daily-target{{
   display:inline-flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;
   color:{SAGE['stone']};background:rgba(255,255,255,0.06);border:1px solid {SAGE['pale']};
@@ -113,14 +115,15 @@ header[data-testid="stHeader"]{{background:transparent}}
 }}
 .il-daily-target-warn b{{color:#ff9686!important}}
 
-/* ── PREMIUM LOGIN ── */
+/* ── PREMIUM LOGIN / ACCOUNT (inline in the main nav row, far right) ── */
 .st-key-il_login_btn{{display:flex;justify-content:flex-end}}
 .st-key-il_login_btn [data-testid="stPopoverButton"],
 .st-key-il_login_btn .stButton>button{{
   background:linear-gradient(180deg,{SAGE['mid']} 0%,#1c5c45 100%)!important;
   color:{SAGE['charcoal']}!important;border:1px solid rgba(232,255,214,0.16)!important;
   border-radius:99px!important;font-weight:700!important;font-size:0.95rem!important;
-  padding:0.5rem 1.1rem!important;width:auto!important;max-width:120px;
+  padding:0.5rem 1.1rem!important;width:auto!important;max-width:160px;
+  overflow:hidden;text-overflow:ellipsis;
   box-shadow:0 6px 20px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.16)!important;
   transition:box-shadow .22s ease,transform .22s ease!important;
 }}
@@ -129,18 +132,12 @@ header[data-testid="stHeader"]{{background:transparent}}
   box-shadow:0 10px 26px rgba(47,181,134,0.4),inset 0 1px 0 rgba(255,255,255,0.2)!important;
   transform:translateY(-2px) scale(1.03)!important;
 }}
-.st-key-il_user_badge{{
-  display:flex;align-items:center;justify-content:flex-end;gap:8px;
-}}
 .il-user-pill{{
   display:inline-flex;align-items:center;gap:6px;font-weight:700;
   color:{SAGE['charcoal']};background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(102,214,235,0.1));
   border:1px solid {SAGE['light']};border-radius:99px;padding:8px 18px;
   box-shadow:0 3px 12px rgba(0,0,0,0.22);backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);white-space:nowrap;
-}}
-.st-key-il_user_badge .stButton>button{{
-  border-radius:99px!important;padding:0.5rem 1.1rem!important;
+  -webkit-backdrop-filter:blur(6px);white-space:nowrap;margin-bottom:8px;
 }}
 
 /* ── HERO ── */
@@ -535,19 +532,59 @@ def get_logo_b64(variant="brand"):
 
 BRAND_TAGLINE = "SCAN, ANALYSE & EAT SMARTER"
 
-def render_auth_bar():
-    """Global top-of-page bar: daily kcal target (if profile set) + Login / Hi [Name]."""
-    prefs = db.get_user_preferences(st.session_state.get("user_id", "")) if st.session_state.get("user_id") else None
-    targets = None
-    if prefs:
-        targets = db.compute_bmi_and_targets(
-            prefs.get("gender"), prefs.get("age"), prefs.get("height_cm"), prefs.get("weight_kg")
-        )
+def _render_login_popover():
+    with st.popover("👤  Login", use_container_width=True):
+        tab_in, tab_up = st.tabs(["Sign In", "Sign Up"])
+        with tab_in:
+            email = st.text_input("Email", key="login_email")
+            pw = st.text_input("Password", type="password", key="login_pw")
+            if st.button("Sign In", key="btn_signin", type="primary", use_container_width=True):
+                user = db.authenticate(email, pw)
+                if user:
+                    do_login(user)
+                    st.rerun()
+                else:
+                    st.error("Invalid email or password.")
+            st.caption("Demo: test123@gmail.com / test123")
+        with tab_up:
+            name = st.text_input("Name", key="signup_name")
+            email2 = st.text_input("Email", key="signup_email")
+            pw2 = st.text_input("Password", type="password", key="signup_pw")
+            if st.button("Sign Up", key="btn_signup", type="primary", use_container_width=True):
+                if not (name and email2 and pw2):
+                    st.error("All fields are required.")
+                else:
+                    uid = db.create_account(name, email2, pw2)
+                    if uid:
+                        do_login(db.get_user_by_email(email2))
+                        st.rerun()
+                    else:
+                        st.error("That email is already registered.")
 
-    authbar = st.container(key="il_authbar")
-    with authbar:
-        c1, c2 = st.columns([5, 2])
-        with c1:
+
+def render_nav_auth_control():
+    """Inline auth control that sits in the main nav row (far right, after
+    About) — no separate status bar above the nav, so there's no reserved
+    empty space when logged out.
+    Logged out: the existing Login popover (Sign In / Sign Up).
+    Logged in: a same-sized popover button showing the user's name, which
+    opens to reveal Daily Target + Hi [name] + Logout — same compact,
+    single-slot footprint as Login, just swapped for the authenticated state."""
+    auth = st.session_state.get("auth_user")
+
+    with st.container(key="il_login_btn"):
+        if not auth:
+            _render_login_popover()
+            return
+
+        display_name = auth["name"] or auth["email"]
+        with st.popover(f"👤  {display_name}", use_container_width=True):
+            prefs = db.get_user_preferences(st.session_state.get("user_id", ""))
+            targets = None
+            if prefs:
+                targets = db.compute_bmi_and_targets(
+                    prefs.get("gender"), prefs.get("age"), prefs.get("height_cm"), prefs.get("weight_kg")
+                )
             if targets:
                 daily = db.get_daily_consumption(st.session_state.get("user_id", ""))
                 remaining = targets["daily_calories"] - daily["calories"]
@@ -557,49 +594,13 @@ def render_auth_bar():
                     f'<b>{targets["daily_calories"]} kcal</b></div>',
                     unsafe_allow_html=True,
                 )
-        with c2:
-            auth = st.session_state.get("auth_user")
-            if auth:
-                with st.container(key="il_user_badge"):
-                    ac1, ac2 = st.columns([2, 1])
-                    with ac1:
-                        st.markdown(
-                            f'<div class="il-user-pill">👤&nbsp; Hi, {auth["name"] or auth["email"]}</div>',
-                            unsafe_allow_html=True,
-                        )
-                    with ac2:
-                        if st.button("Logout", key="btn_logout_header", use_container_width=True):
-                            do_logout()
-                            st.rerun()
-            else:
-                with st.container(key="il_login_btn"):
-                    with st.popover("👤  Login", use_container_width=True):
-                        tab_in, tab_up = st.tabs(["Sign In", "Sign Up"])
-                        with tab_in:
-                            email = st.text_input("Email", key="login_email")
-                            pw = st.text_input("Password", type="password", key="login_pw")
-                            if st.button("Sign In", key="btn_signin", type="primary", use_container_width=True):
-                                user = db.authenticate(email, pw)
-                                if user:
-                                    do_login(user)
-                                    st.rerun()
-                                else:
-                                    st.error("Invalid email or password.")
-                            st.caption("Demo: test123@gmail.com / test123")
-                        with tab_up:
-                            name = st.text_input("Name", key="signup_name")
-                            email2 = st.text_input("Email", key="signup_email")
-                            pw2 = st.text_input("Password", type="password", key="signup_pw")
-                            if st.button("Sign Up", key="btn_signup", type="primary", use_container_width=True):
-                                if not (name and email2 and pw2):
-                                    st.error("All fields are required.")
-                                else:
-                                    uid = db.create_account(name, email2, pw2)
-                                    if uid:
-                                        do_login(db.get_user_by_email(email2))
-                                        st.rerun()
-                                    else:
-                                        st.error("That email is already registered.")
+            st.markdown(
+                f'<div class="il-user-pill">👤&nbsp; Hi, {display_name}</div>',
+                unsafe_allow_html=True,
+            )
+            if st.button("Logout", key="btn_logout_header", type="primary", use_container_width=True):
+                do_logout()
+                st.rerun()
 
 
 def render_scan_scene() -> str:
@@ -695,7 +696,7 @@ def render_page_header(page_icon: str, page_title: str, page_subtitle: str = "",
     Shows: larger logo + IngreLens AI branding + page title + subtitle.
     Call this at the top of every page instead of duplicating hero HTML.
     mega=True (Home only) swaps in the full premium animated hero.
-    Auth bar itself is now rendered by render_top_nav() (above the main nav).
+    Login/Account control itself is rendered inline by render_top_nav().
     """
     render_floating_assistant()
     if mega:
@@ -805,12 +806,16 @@ _NAV_CENTER = [
     ("pages/2_🔍_Analyzer.py", "Search Product", "🔍"),
     ("pages/3_🔢_Barcode_Lookup.py", "Barcode Lookup", "🔢"),
     ("pages/4_⚖️_Comparison.py", "Compare Products", "⚖️"),
-    ("pages/8_🍽️_Food_Logs.py", "Food Logs", "🍽️"),
 ]
 _NAV_RIGHT = [
-    ("pages/5_👤_Preferences.py", "Preferences", "👤"),
-    ("pages/6_📚_History.py", "History", "📚"),
     ("pages/7_ℹ️_About.py", "About", "ℹ️"),
+]
+# Grouped under the "Profile" dropdown in the main nav — same routes/pages,
+# just tucked behind one menu instead of three separate top-level pills.
+_PROFILE_DROPDOWN = [
+    ("pages/5_👤_Preferences.py", "Profile", "👤"),
+    ("pages/8_🍽️_Food_Logs.py", "Food Logs", "🍽️"),
+    ("pages/6_📚_History.py", "History", "📚"),
 ]
 
 
@@ -818,37 +823,46 @@ def render_top_nav():
     """Responsive top navigation bar — replaces the left sidebar.
     Uses the same st.page_link widgets as before (routing/logic untouched),
     just laid out horizontally. Collapses into a hamburger toggle under 900px.
-    Renders the auth/status bar (Daily Target + Hi [name]/Login) first, so it
-    sits above the main nav row — render_page_header() no longer renders its
-    own copy, to avoid showing it twice."""
-    render_auth_bar()
+    Login/Account sits inline at the far right of this same row (after
+    About) — there's no separate status bar above the nav, so no empty
+    space is reserved when logged out. "Profile" is a dropdown (popover)
+    covering Profile, Food Logs and History — same pages/routes, just
+    grouped under one menu instead of three top-level pills."""
     if "show_mobile_nav" not in st.session_state:
         st.session_state.show_mobile_nav = False
 
     b64 = get_logo_b64("sidebar")
     logo_html = (
         f'<div class="il-topnav-brand"><div class="il-logo-wrap" style="display:inline-block;vertical-align:middle">'
-        f'<div class="il-logo-glow" style="inset:-8px"></div>'
+        f'<div class="il-logo-glow" style="inset:-10px"></div>'
         f'<div class="il-logo-glass"><img src="data:image/png;base64,{b64}" '
-        f'style="width:32px;vertical-align:middle" alt="IngreLens AI"></div></div>'
+        f'style="width:38px;vertical-align:middle" alt="IngreLens AI"></div></div>'
         f'<span class="il-topnav-word">IngreLens <b>AI</b></span></div>'
         if b64 else '<span class="il-topnav-word">IngreLens <b>AI</b></span>'
     )
 
     with st.container(key="il_topnav"):
-        col_logo, col_links, col_toggle = st.columns([1.1, 10.6, 0.3])
+        col_logo, col_links, col_auth, col_toggle = st.columns([1.5, 8.0, 2.2, 0.3])
         with col_logo:
             st.markdown(logo_html, unsafe_allow_html=True)
         with col_links:
             with st.container(key="il_topnav_links"):
-                items = _NAV_CENTER + _NAV_RIGHT
                 # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
                 # No icons here (desktop pills) — every pixel goes to the label text.
-                _nav_ratios = [0.9, 1.1, 1.65, 1.65, 1.8, 1.3, 1.35, 1.05, 0.9]
+                _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 1.05, 0.9]
                 sub_cols = st.columns(_nav_ratios, gap="small")
-                for i, (target, label, icon) in enumerate(items):
+                for i, (target, label, icon) in enumerate(_NAV_CENTER):
                     with sub_cols[i]:
                         st.page_link(target, label=label)
+                with sub_cols[len(_NAV_CENTER)]:
+                    with st.popover("Profile", use_container_width=True):
+                        for target, label, icon in _PROFILE_DROPDOWN:
+                            st.page_link(target, label=label, icon=icon)
+                with sub_cols[len(_NAV_CENTER) + 1]:
+                    for target, label, icon in _NAV_RIGHT:
+                        st.page_link(target, label=label)
+        with col_auth:
+            render_nav_auth_control()
         with col_toggle:
             with st.container(key="il_topnav_toggle"):
                 if st.button("☰", key="mobile_nav_toggle_btn"):
@@ -856,7 +870,7 @@ def render_top_nav():
 
     if st.session_state.show_mobile_nav:
         with st.container(key="il_mobile_nav_panel"):
-            for target, label, icon in _NAV_CENTER + _NAV_RIGHT:
+            for target, label, icon in _NAV_CENTER + _PROFILE_DROPDOWN + _NAV_RIGHT:
                 st.page_link(target, label=label, icon=icon)
 
 
@@ -896,6 +910,7 @@ _CLEARABLE_PAGE_KEYS = [
     "scan_mode_radio",
     # Barcode Lookup / Paste Ingredients
     "selected_barcode", "paste_result", "paste_result_name", "paste_raw", "paste_name_input",
+    "paste_product", "_paste_demo_meta",
     # Analyzer / Search
     "ar", "ap", "analyzer_pending_query", "analyzer_products",
     "analyzer_suggestions", "analyzer_query", "analyzer_suggest_pick",
