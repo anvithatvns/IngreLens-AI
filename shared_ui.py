@@ -44,6 +44,10 @@ header[data-testid="stHeader"] *{{display:none!important}}
 [data-testid="stSidebar"]{{display:none!important}}
 [data-testid="collapsedControl"]{{display:none!important}}
 .main .block-container{{padding-top:0.5rem}}
+/* Newer Streamlit builds rename the block container's testid — target it
+   directly so no top padding survives regardless of which class the
+   installed version uses. */
+[data-testid="stMainBlockContainer"]{{padding-top:0!important}}
 
 /* ── TOP NAVIGATION ── */
 .st-key-il_topnav{{
@@ -118,10 +122,14 @@ header[data-testid="stHeader"] *{{display:none!important}}
   border-color:#e5584a!important;box-shadow:0 2px 12px rgba(229,88,74,0.35)!important;
 }}
 .il-daily-target-warn b{{color:#ff9686!important}}
-/* Logged-in status strip, directly under the main nav */
+/* Logged-in status strip, directly under the main nav — Daily Target on
+   the left, Remaining Calories pushed to the far right of the same row */
 .st-key-il_status_panel{{
-  display:flex;gap:12px;margin:-0.5rem -0.25rem 1rem;padding:8px 18px;
+  display:flex!important;flex-direction:row!important;
+  justify-content:space-between;align-items:center;gap:16px;
+  margin:-0.5rem -0.25rem 1rem;padding:8px 18px;
 }}
+.st-key-il_status_panel [data-testid="stMarkdownContainer"]{{width:auto}}
 
 /* ── PREMIUM LOGIN / ACCOUNT (inline in the main nav row, far right) ── */
 .st-key-il_login_btn{{display:flex;justify-content:flex-end}}
@@ -577,8 +585,14 @@ def render_status_panel():
     remaining = max(targets["daily_calories"] - daily["calories"], 0)
     warn_class = " il-daily-target-warn" if remaining <= 0 else ""
     with st.container(key="il_status_panel"):
+        # Two separate st.markdown calls so each pill is its own flex child —
+        # a single call would wrap both in one element and space-between
+        # would have nothing to distribute.
         st.markdown(
-            f'<div class="il-daily-target">🎯 Daily Target&nbsp; <b>{targets["daily_calories"]} kcal</b></div>'
+            f'<div class="il-daily-target">🎯 Daily Target&nbsp; <b>{targets["daily_calories"]} kcal</b></div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
             f'<div class="il-daily-target{warn_class}">🔥 Remaining&nbsp; <b>{remaining:.0f} kcal</b></div>',
             unsafe_allow_html=True,
         )
