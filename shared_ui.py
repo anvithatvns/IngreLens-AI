@@ -103,15 +103,24 @@ header[data-testid="stHeader"]{{background:transparent}}
   display:inline-flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;
   color:{SAGE['stone']};background:rgba(255,255,255,0.06);border:1px solid {SAGE['pale']};
   border-radius:99px;padding:8px 18px;box-shadow:0 2px 10px rgba(0,0,0,0.2);
+  transition:border-color .25s ease,box-shadow .25s ease;
 }}
 .il-daily-target b{{font-size:1.15rem;color:{SAGE['mid']}}}
+/* Non-blocking visual warning once remaining calories hit 0 — logging more
+   food is still allowed, this is purely informational. */
+.il-daily-target-warn{{
+  border-color:#e5584a!important;box-shadow:0 2px 12px rgba(229,88,74,0.35)!important;
+}}
+.il-daily-target-warn b{{color:#ff9686!important}}
 
 /* ── PREMIUM LOGIN ── */
+.st-key-il_login_btn{{display:flex;justify-content:flex-end}}
 .st-key-il_login_btn [data-testid="stPopoverButton"],
 .st-key-il_login_btn .stButton>button{{
   background:linear-gradient(180deg,{SAGE['mid']} 0%,#1c5c45 100%)!important;
   color:{SAGE['charcoal']}!important;border:1px solid rgba(232,255,214,0.16)!important;
-  border-radius:99px!important;font-weight:700!important;padding:0.6rem 1.4rem!important;
+  border-radius:99px!important;font-weight:700!important;font-size:0.95rem!important;
+  padding:0.5rem 1.1rem!important;width:auto!important;max-width:120px;
   box-shadow:0 6px 20px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.16)!important;
   transition:box-shadow .22s ease,transform .22s ease!important;
 }}
@@ -540,8 +549,11 @@ def render_auth_bar():
         c1, c2 = st.columns([5, 2])
         with c1:
             if targets:
+                daily = db.get_daily_consumption(st.session_state.get("user_id", ""))
+                remaining = targets["daily_calories"] - daily["calories"]
+                warn_class = " il-daily-target-warn" if remaining <= 0 else ""
                 st.markdown(
-                    f'<div class="il-daily-target">🎯 Daily Target&nbsp; '
+                    f'<div class="il-daily-target{warn_class}">🎯 Daily Target&nbsp; '
                     f'<b>{targets["daily_calories"]} kcal</b></div>',
                     unsafe_allow_html=True,
                 )
@@ -683,8 +695,8 @@ def render_page_header(page_icon: str, page_title: str, page_subtitle: str = "",
     Shows: larger logo + IngreLens AI branding + page title + subtitle.
     Call this at the top of every page instead of duplicating hero HTML.
     mega=True (Home only) swaps in the full premium animated hero.
+    Auth bar itself is now rendered by render_top_nav() (above the main nav).
     """
-    render_auth_bar()
     render_floating_assistant()
     if mega:
         render_home_hero()
@@ -805,7 +817,11 @@ _NAV_RIGHT = [
 def render_top_nav():
     """Responsive top navigation bar — replaces the left sidebar.
     Uses the same st.page_link widgets as before (routing/logic untouched),
-    just laid out horizontally. Collapses into a hamburger toggle under 900px."""
+    just laid out horizontally. Collapses into a hamburger toggle under 900px.
+    Renders the auth/status bar (Daily Target + Hi [name]/Login) first, so it
+    sits above the main nav row — render_page_header() no longer renders its
+    own copy, to avoid showing it twice."""
+    render_auth_bar()
     if "show_mobile_nav" not in st.session_state:
         st.session_state.show_mobile_nav = False
 
@@ -879,7 +895,7 @@ _CLEARABLE_PAGE_KEYS = [
     "ocr_image_hash", "barcode_result", "barcode_prod", "cam_detected_bc",
     "scan_mode_radio",
     # Barcode Lookup / Paste Ingredients
-    "selected_barcode", "paste_result", "paste_result_name", "paste_text", "paste_name",
+    "selected_barcode", "paste_result", "paste_result_name", "paste_raw", "paste_name_input",
     # Analyzer / Search
     "ar", "ap", "analyzer_pending_query", "analyzer_products",
     "analyzer_suggestions", "analyzer_query", "analyzer_suggest_pick",

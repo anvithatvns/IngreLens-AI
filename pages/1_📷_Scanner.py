@@ -322,7 +322,11 @@ function captureFrame() {{
   if (detectedBarcode) {{
     document.getElementById("bcBox").style.display  = "block";
     document.getElementById("bcValue").textContent  = detectedBarcode;
-    document.getElementById("analyzeBtn").textContent = "🧬 Analyze: " + detectedBarcode;
+    document.getElementById("analyzeBtn").textContent = "🧬 Analyzing: " + detectedBarcode + " …";
+    // A barcode was already confirmed by live detection before this capture
+    // — no need to make the user click Analyze too; auto-continue straight
+    // into Fetch & Analyze after a brief moment so the capture is visible.
+    setTimeout(sendBarcodeToStreamlit, 700);
   }} else {{
     document.getElementById("bcBox").style.display = "none";
     document.getElementById("analyzeBtn").textContent = "🧬 No barcode detected — enter manually below";

@@ -21,7 +21,7 @@ render_page_header("🔢", "Barcode Lookup",
 
 def clear_lookup_state():
     for k in ["barcode_result", "barcode_prod", "selected_barcode",
-              "paste_result", "paste_result_name", "paste_text", "paste_name"]:
+              "paste_result", "paste_result_name", "paste_raw", "paste_name_input"]:
         st.session_state.pop(k, None)
 
 tab1, tab2 = st.tabs(["🔢 Barcode Lookup", "✍️ Paste Ingredients"])
@@ -163,23 +163,26 @@ with tab2:
         for i, (lbl, name, _) in enumerate(EXAMPLES):
             with ec[i % 4]:
                 if st.button(lbl, key=f"ex_{i}", use_container_width=True):
-                    st.session_state["paste_text"] = EXAMPLES[i][2]
-                    st.session_state["paste_name"] = name
+                    # Write straight into the widgets' own session-state keys
+                    # (not a separate shadow key) — a keyed widget only reads
+                    # its `value=` argument on its very first render, so
+                    # updating an intermediary key had no visible effect
+                    # here after the first rerun. Setting the widget's own
+                    # key directly is what Streamlit actually picks up.
+                    st.session_state["paste_raw"] = EXAMPLES[i][2]
+                    st.session_state["paste_name_input"] = name
                     st.rerun()
-
-        def_t = st.session_state.get("paste_text", "")
-        def_n = st.session_state.get("paste_name", "")
 
         ma, mb = st.columns([3, 1])
         with ma:
             raw = st.text_area(
-                "Ingredient list", value=def_t, height=130,
+                "Ingredient list", height=130,
                 placeholder="Paste ingredient list here…",
                 label_visibility="collapsed", key="paste_raw",
             )
         with mb:
             pname = st.text_input(
-                "Product name", value=def_n, placeholder="e.g. Nutella",
+                "Product name", placeholder="e.g. Nutella",
                 label_visibility="collapsed", key="paste_name_input",
             )
             st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
@@ -191,8 +194,6 @@ with tab2:
                 result = svc.analyze(raw, pname or "Custom Product")
             st.session_state["paste_result"] = result
             st.session_state["paste_result_name"] = pname or "Custom Product"
-            st.session_state.pop("paste_text", None)
-            st.session_state.pop("paste_name", None)
             add_history(pname or "Custom Product", result.overall_vegan, raw, result)
             log_activity("Paste Ingredients", "Barcode Lookup")
             st.rerun()

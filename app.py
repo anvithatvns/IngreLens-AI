@@ -50,6 +50,7 @@ if not st.session_state.entered_app:
     with _g2:
         if st.button("Get Started", key="get_started_cta", use_container_width=True, type="primary"):
             st.session_state.entered_app = True
+            st.session_state["_scroll_to_quick_actions"] = True
             st.rerun()
     if _fresh_home_arrival:
         # Focus the hero first, hold there briefly, then draw the eye down
