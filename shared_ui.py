@@ -73,7 +73,7 @@ header[data-testid="stHeader"] *{{display:none!important}}
   box-shadow:inset 0 -2px 0 {SAGE['mid']}!important;
 }}
 .st-key-il_topnav_links [data-testid="stPageLink"] p{{
-  font-size:0.9rem!important;font-weight:700!important;color:{SAGE['stone']}!important;
+  font-size:1rem!important;font-weight:700!important;color:{SAGE['stone']}!important;
   white-space:nowrap!important;
 }}
 .st-key-il_topnav_links [data-testid="stPageLink"][aria-current="page"] p{{color:{SAGE['charcoal']}!important}}
@@ -606,9 +606,8 @@ def render_nav_auth_control():
     """Inline auth control that sits in the main nav row (far right, after
     About) — no separate status bar above the nav, so there's no reserved
     empty space when logged out.
-    Logged out: the existing Login popover (Sign In / Sign Up) — the
-    separate Profile dropdown (Profile/Food Logs/History) still shows in
-    its usual nav position for anonymous users.
+    Logged out: only the Login popover (Sign In / Sign Up) shows — no
+    Profile menu anywhere in the nav for anonymous users.
     Logged in: a same-sized popover button reading "Hi, [name]" (the
     username appears once, on the button itself — nothing repeats it
     inside), whose dropdown merges what used to be two separate menus:
@@ -626,7 +625,7 @@ def render_nav_auth_control():
                 st.page_link(target, label=label, icon=icon)
             if st.button("Logout", key="btn_logout_header", type="primary", use_container_width=True):
                 do_logout()
-                st.rerun()
+                st.switch_page("app.py")
 
 
 def render_scan_scene() -> str:
@@ -851,9 +850,9 @@ def render_top_nav():
     just laid out horizontally. Collapses into a hamburger toggle under 900px.
     Login/Account sits inline at the far right of this same row (after
     About) — there's no separate status bar above the nav, so no empty
-    space is reserved when logged out. "Profile" is a dropdown (popover)
-    covering Profile, Food Logs and History — same pages/routes, just
-    grouped under one menu instead of three top-level pills."""
+    space is reserved when logged out. Profile/Food Logs/History only
+    exist as a dropdown (popover) inside the authenticated account
+    control — logged out, there's no Profile menu at all, just Login."""
     if "show_mobile_nav" not in st.session_state:
         st.session_state.show_mobile_nav = False
 
@@ -875,26 +874,15 @@ def render_top_nav():
             with st.container(key="il_topnav_links"):
                 # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
                 # No icons here (desktop pills) — every pixel goes to the label text.
-                # Logged in: the Profile dropdown (Profile/Food Logs/History) moves
-                # into the account control on the far right, merged with Logout —
-                # one menu instead of two. Logged out: unchanged, shown here.
-                logged_in = bool(st.session_state.get("auth_user"))
-                if logged_in:
-                    _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 0.9]
-                else:
-                    _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 1.05, 0.9]
+                # Profile/Food Logs/History only ever appear grouped inside the
+                # authenticated account control — logged out, there's no Profile
+                # menu in the nav at all, just Login.
+                _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 0.9]
                 sub_cols = st.columns(_nav_ratios, gap="small")
                 for i, (target, label, icon) in enumerate(_NAV_CENTER):
                     with sub_cols[i]:
                         st.page_link(target, label=label)
-                next_slot = len(_NAV_CENTER)
-                if not logged_in:
-                    with sub_cols[next_slot]:
-                        with st.popover("Profile", use_container_width=True):
-                            for target, label, icon in _PROFILE_DROPDOWN:
-                                st.page_link(target, label=label, icon=icon)
-                    next_slot += 1
-                with sub_cols[next_slot]:
+                with sub_cols[len(_NAV_CENTER)]:
                     for target, label, icon in _NAV_RIGHT:
                         st.page_link(target, label=label)
         with col_auth:
@@ -906,7 +894,10 @@ def render_top_nav():
 
     if st.session_state.show_mobile_nav:
         with st.container(key="il_mobile_nav_panel"):
-            for target, label, icon in _NAV_CENTER + _PROFILE_DROPDOWN + _NAV_RIGHT:
+            mobile_items = _NAV_CENTER + _NAV_RIGHT
+            if st.session_state.get("auth_user"):
+                mobile_items = _NAV_CENTER + _PROFILE_DROPDOWN + _NAV_RIGHT
+            for target, label, icon in mobile_items:
                 st.page_link(target, label=label, icon=icon)
 
     render_status_panel()
@@ -1338,7 +1329,7 @@ def render_floating_assistant():
         }
         .st-key-ai_fab_btn .stButton>button {
             width: 58px; height: 58px; border-radius: 50% !important;
-            font-size: 1.5rem !important; padding: 0 !important;
+            font-size: 2rem !important; padding: 0 !important;
             box-shadow: 0 6px 22px rgba(23,201,168,0.4) !important;
             transition: transform .22s ease !important;
         }
