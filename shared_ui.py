@@ -928,6 +928,20 @@ def init_state():
     if "user_id" not in st.session_state:
         _activate_user(db.get_or_create_local_user())
 
+    # Restore an authenticated session across a hard browser refresh/reopen —
+    # st.session_state itself is wiped on those, so the logged-in user's id
+    # is mirrored into the URL's query params (do_login/every page load) and
+    # read back here via the same existing do_login() flow, never a new
+    # auth path. Only ever restores an id that came from a real login.
+    if not st.session_state.get("auth_user"):
+        restore_uid = st.query_params.get("uid")
+        if restore_uid:
+            restored_user = db.get_user_by_id(restore_uid)
+            if restored_user:
+                do_login(restored_user)
+    if st.session_state.get("auth_user"):
+        st.query_params["uid"] = st.session_state.auth_user["user_id"]
+
 
 # Transient per-page working state — cleared whenever the user actually
 # navigates to a different page (not on same-page reruns), so every page
@@ -979,6 +993,7 @@ def do_login(user: dict):
 
 def do_logout():
     st.session_state.pop("auth_user", None)
+    st.query_params.pop("uid", None)
     _activate_user(db.get_or_create_local_user())
 
 

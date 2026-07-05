@@ -150,6 +150,23 @@ def get_user_by_email(email: str) -> Optional[dict]:
         return None
 
 
+def get_user_by_id(user_id: str) -> Optional[dict]:
+    """Used to restore an authenticated session (e.g. after a browser
+    refresh) — only ever looked up for a user_id already established via
+    a real login, never used to authenticate from scratch."""
+    if not user_id:
+        return None
+    try:
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM users WHERE user_id = ? AND email IS NOT NULL", (user_id,)
+            ).fetchone()
+        return dict(row) if row else None
+    except Exception as e:
+        logger.error(f"Failed to look up user by id {user_id!r}: {e}")
+        return None
+
+
 def create_account(name: str, email: str, password: str) -> Optional[str]:
     """Sign-up: create a new user identity with a hashed password. Returns user_id, or None if the email is taken."""
     if get_user_by_email(email):

@@ -31,8 +31,9 @@ qp = st.query_params
 if "bc" in qp and qp["bc"] and not st.session_state.get("barcode_result"):
     detected_bc = qp["bc"]
     st.session_state["cam_detected_bc"] = detected_bc
-    # Clear from URL immediately
-    st.query_params.clear()
+    # Clear from URL immediately — only this key; other params (e.g. the
+    # persisted auth "uid") must survive.
+    st.query_params.pop("bc", None)
 
 
 # ══════════════════════════════════════════════════════════════════
