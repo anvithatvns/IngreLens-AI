@@ -14,14 +14,16 @@ from shared_ui import (inject_css, init_state, render_top_nav, render_page_heade
                         render_ingredient_cards, render_allergen_pills,
                         full_analysis_display, get_logo_b64, render_logo_hero,
                         verdict_emoji, verdict_color, SAGE, enter_page,
-                        cached_analyze, log_activity)
+                        cached_analyze, log_activity, scroll_sequence)
 from backend.services.analysis_service import IngredientAnalysisService
 from backend.services.product_service import ProductFetchService
 
 inject_css()
 init_state()
 render_top_nav()
+_prev_page = st.session_state.get("_current_page")
 enter_page("home")
+_fresh_home_arrival = _prev_page != "home"
 
 @st.cache_resource(show_spinner=False)
 def get_svc():
@@ -43,15 +45,23 @@ if "entered_app" not in st.session_state:
     st.session_state.entered_app = False
 
 if not st.session_state.entered_app:
+    st.markdown('<div id="il-get-started-anchor"></div>', unsafe_allow_html=True)
     _g1, _g2, _g3 = st.columns([1, 1, 1])
     with _g2:
         if st.button("Get Started", key="get_started_cta", use_container_width=True, type="primary"):
             st.session_state.entered_app = True
             st.rerun()
+    if _fresh_home_arrival:
+        # Focus the hero first, hold there briefly, then draw the eye down
+        # to the Get Started button so it's guaranteed visible on arrival.
+        scroll_sequence([("il-hero-anchor", 400), ("il-get-started-anchor", 2500)])
     st.stop()
 
 # ── Quick actions — large square glass cards with transparent line-art icons ──
-st.markdown(f'<div style="font-size:0.75rem;font-weight:600;color:{SAGE["stone"]};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Quick Actions</div>', unsafe_allow_html=True)
+st.markdown(f'<div id="il-quick-actions-anchor" style="font-size:0.75rem;font-weight:600;color:{SAGE["stone"]};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Quick Actions</div>', unsafe_allow_html=True)
+
+if st.session_state.pop("_scroll_to_quick_actions", False):
+    scroll_sequence([("il-quick-actions-anchor", 300)])
 
 _QA_ICON_SCANNER = f'''<svg viewBox="0 0 120 100" width="100%" height="72" style="display:block;margin:0 auto">
   <rect x="20" y="18" width="80" height="64" rx="8" fill="none" stroke="{SAGE['stone']}" stroke-width="4"/>

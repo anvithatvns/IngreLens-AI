@@ -659,7 +659,7 @@ def render_home_hero():
         if b64 else '<div style="font-size:4rem">🏠</div>'
     )
     st.markdown(
-        f'''<div class="il-mega-hero">
+        f'''<div class="il-mega-hero" id="il-hero-anchor">
   <div class="il-mega-shape s1"></div>
   <div class="il-mega-shape s2"></div>
   <div class="il-mega-shape s3"></div>
@@ -1352,8 +1352,9 @@ def _get_daily_target(user_id: str) -> dict:
 
 def _parse_quantity(product: dict):
     """Best-effort unit-mode detection from a product's quantity/serving
-    string ('400g' -> weight, '6 pieces' -> count). Falls back to the
-    standard 100g reference basis nutriments are already stored in."""
+    string ('400g' -> weight, '1.5L' -> weight (liquid, normalized to ml),
+    '6 pieces' -> count). Falls back to the standard 100g/100ml reference
+    basis nutriments are already stored in."""
     qty_str = str((product or {}).get("quantity") or (product or {}).get("serving_size") or "").lower()
     count_units = [("slice", "slices"), ("piece", "pieces"), ("pcs", "pieces"),
                    ("bar", "bars"), ("cookie", "cookies"), ("biscuit", "biscuits"), ("item", "items")]
@@ -1361,6 +1362,10 @@ def _parse_quantity(product: dict):
         if kw in qty_str:
             m = re.search(r"(\d+(?:\.\d+)?)", qty_str)
             return "count", (float(m.group(1)) if m else 1.0), label
+    # Liters -> normalize to ml (1L = 1000ml) so the same per-100ml basis applies
+    m = re.search(r"(\d+(?:\.\d+)?)\s*l(?:iters?|itres?)?\b", qty_str)
+    if m and "ml" not in qty_str:
+        return "weight", float(m.group(1)) * 1000, "ml"
     m = re.search(r"(\d+(?:\.\d+)?)\s*ml\b", qty_str)
     if m:
         return "weight", float(m.group(1)), "ml"
@@ -1376,12 +1381,30 @@ def _show_portion_dialog(name: str, nm: dict, product: dict, btn_key: str):
     user_id = st.session_state.get("user_id")
 
     if mode == "weight":
-        st.caption(f"Nutrition values are per 100{unit_label}. Enter how much you actually consumed.")
+        # Let the user pick g / ml / L explicitly rather than trusting
+        # auto-detection alone — L is normalized to ml (1L = 1000ml) since
+        # nutriments are stored on a per-100g/100ml basis either way.
+        unit_options = ["g", "ml", "L"]
+        default_idx = unit_options.index(unit_label) if unit_label in unit_options else 0
+        uc1, uc2 = st.columns([2, 1])
+        with uc2:
+            chosen_unit = st.selectbox("Unit", unit_options, index=default_idx,
+                                        key=f"portion_unit_{btn_key}", label_visibility="collapsed")
+        with uc1:
+            st.caption(f"Nutrition values are per 100{unit_label}. Enter how much you actually consumed.")
+        if chosen_unit == "L":
+            default_amt, max_amt, step_amt = 0.1, 5.0, 0.1
+        else:
+            default_amt = min(float(total_units), 100.0) if chosen_unit == unit_label else 100.0
+            max_amt, step_amt = 2000.0, 5.0
         consumed = st.number_input(
-            f"Amount consumed ({unit_label})", min_value=0.0, max_value=2000.0,
-            value=min(float(total_units), 100.0), step=5.0, key=f"portion_amt_{btn_key}",
+            f"Amount consumed ({chosen_unit})", min_value=0.0, max_value=max_amt,
+            value=default_amt, step=step_amt, key=f"portion_amt_{btn_key}_{chosen_unit}",
         )
-        ratio = consumed / 100.0
+        # Normalize to the same 100g/100ml basis nutriments are stored in
+        consumed_normalized = consumed * 1000 if chosen_unit == "L" else consumed
+        ratio = consumed_normalized / 100.0
+        unit_label = chosen_unit  # for display + what gets logged
     else:
         st.caption(f"This package is about {total_units:g} {unit_label}.")
         consumed = st.number_input(
@@ -1432,7 +1455,17 @@ def _show_portion_dialog(name: str, nm: dict, product: dict, btn_key: str):
             quantity=consumed, unit=unit_label,
         )
         log_activity("Food Log Add", "Analysis")
-        st.success(f"✅ Logged {calories:.0f} kcal to today's Food Log.")
+        st.session_state.pop(f"_consumption_open_{btn_key}", None)  # don't reopen this dialog on return
+        st.session_state["_scroll_to_quick_actions"] = True
+        st.toast("✅ Added to your food logs", icon="✅")
+        st.switch_page("app.py")
+
+    # Streamlit dialogs have no "on close" callback, so the native X button
+    # can't clear our own "is this open" flag — an explicit Cancel gives
+    # users a reliable way to dismiss it without it popping back up the next
+    # time they interact with anything else on the page.
+    if st.button("Cancel", key=f"cancel_portion_{btn_key}", use_container_width=True):
+        st.session_state.pop(f"_consumption_open_{btn_key}", None)
         st.rerun()
 
 
@@ -1528,6 +1561,27 @@ def _scroll_to_anchor(anchor_id: str):
             if (el) {{ el.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
         }})();
         </script>""",
+        height=0,
+    )
+
+
+def scroll_sequence(steps: list):
+    """Chained smooth-scrolls, e.g. [("hero-id", 400), ("cta-id", 2500)]
+    scrolls to hero after 400ms, then to the CTA 2.5s after that — giving the
+    hero a moment of focus before moving on. Delays are cumulative."""
+    import streamlit.components.v1 as components
+    js_steps = []
+    cumulative = 0
+    for anchor_id, delay_ms in steps:
+        cumulative += delay_ms
+        js_steps.append(
+            f"""setTimeout(function() {{
+                const el = doc.getElementById('{anchor_id}');
+                if (el) {{ el.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+            }}, {cumulative});"""
+        )
+    components.html(
+        f"<script>(function(){{const doc = window.parent.document;{''.join(js_steps)}}})();</script>",
         height=0,
     )
 
