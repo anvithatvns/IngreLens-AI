@@ -190,18 +190,28 @@ def authenticate(email: str, password: str) -> Optional[dict]:
 # ── User preferences ─────────────────────────────────────────────────────────
 def save_user_preferences(user_id: str, diet_type: str = "", allergies=None,
                            preferred_language: str = "English", gender: str = None,
-                           age: int = None, height_cm: float = None, weight_kg: float = None) -> bool:
+                           age: int = None, height_cm: float = None, weight_kg: float = None,
+                           diet_modes: list = None) -> bool:
+    """diet_modes (new multi-select) takes precedence when provided; diet_type
+    is still populated (joined string) so any code still reading the old
+    single-value column keeps working unchanged."""
     allergies_json = json.dumps(allergies or [])
+    if diet_modes is not None:
+        diet_type = ", ".join(diet_modes) if diet_modes else ""
+        diet_modes_json = json.dumps(diet_modes)
+    else:
+        diet_modes_json = None
     try:
         with get_connection() as conn:
             now = _now()
             conn.execute(
                 """INSERT INTO user_preferences
-                       (user_id, diet_type, allergies, preferred_language,
+                       (user_id, diet_type, diet_modes, allergies, preferred_language,
                         gender, age, height_cm, weight_kg, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(user_id) DO UPDATE SET
                        diet_type=excluded.diet_type,
+                       diet_modes=COALESCE(excluded.diet_modes, user_preferences.diet_modes),
                        allergies=excluded.allergies,
                        preferred_language=excluded.preferred_language,
                        gender=COALESCE(excluded.gender, user_preferences.gender),
@@ -209,7 +219,7 @@ def save_user_preferences(user_id: str, diet_type: str = "", allergies=None,
                        height_cm=COALESCE(excluded.height_cm, user_preferences.height_cm),
                        weight_kg=COALESCE(excluded.weight_kg, user_preferences.weight_kg),
                        updated_at=excluded.updated_at""",
-                (user_id, diet_type, allergies_json, preferred_language,
+                (user_id, diet_type, diet_modes_json, allergies_json, preferred_language,
                  gender, age, height_cm, weight_kg, now, now),
             )
         return True
@@ -228,6 +238,19 @@ def get_user_preferences(user_id: str) -> Optional[dict]:
             return None
         d = dict(row)
         d["allergies"] = json.loads(d.get("allergies") or "[]")
+        # Backward compatibility: older rows only ever had a single diet_type
+        # string. Always expose a normalized diet_modes list so callers don't
+        # need to know which shape the row was saved in.
+        raw_modes = d.get("diet_modes")
+        if raw_modes:
+            try:
+                d["diet_modes"] = json.loads(raw_modes)
+            except (TypeError, ValueError):
+                d["diet_modes"] = [d["diet_type"]] if d.get("diet_type") else []
+        elif d.get("diet_type"):
+            d["diet_modes"] = [m.strip() for m in d["diet_type"].split(",") if m.strip()]
+        else:
+            d["diet_modes"] = []
         return d
     except Exception as e:
         logger.error(f"Failed to load preferences for {user_id}: {e}")
@@ -412,18 +435,22 @@ def log_activity(user_id: str, action: str, page: str = "") -> bool:
         return False
 
 
-# ── Consumption tracking (for the daily-intake checker) ─────────────────────
+# ── Consumption tracking / Food Log (for the daily-intake checker) ──────────
 def log_consumption(user_id: str, product_name: str, calories: float = 0,
-                     protein: float = 0, fat: float = 0, sugar: float = 0) -> bool:
+                     protein: float = 0, fat: float = 0, sugar: float = 0,
+                     quantity: float = None, unit: str = None) -> bool:
+    """Record one food-log entry. quantity/unit are optional (e.g. 45g,
+    2 pieces) — kept nullable so older callers that don't pass them still work."""
     try:
         with get_connection() as conn:
             now = _now()
             conn.execute(
                 """INSERT INTO consumption_log
-                       (user_id, product_name, calories, protein, fat, sugar, log_date, timestamp)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                       (user_id, product_name, calories, protein, fat, sugar,
+                        quantity, unit, log_date, timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (user_id, product_name, calories or 0, protein or 0, fat or 0, sugar or 0,
-                 date.today().isoformat(), now),
+                 quantity, unit, date.today().isoformat(), now),
             )
         return True
     except Exception as e:
@@ -445,3 +472,54 @@ def get_daily_consumption(user_id: str, log_date: str = None) -> dict:
     except Exception as e:
         logger.error(f"Failed to load daily consumption for {user_id}: {e}")
         return {"calories": 0, "protein": 0, "fat": 0, "sugar": 0}
+
+
+def get_consumption_entries(user_id: str, log_date: str = None) -> list:
+    """Individual food-log rows for a given day (newest first) — powers the
+    Food Logs page's per-entry list, as opposed to get_daily_consumption's
+    aggregate totals."""
+    log_date = log_date or date.today().isoformat()
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(
+                """SELECT log_id, product_name, calories, protein, fat, sugar,
+                          quantity, unit, log_date, timestamp
+                   FROM consumption_log WHERE user_id = ? AND log_date = ?
+                   ORDER BY timestamp DESC""",
+                (user_id, log_date),
+            ).fetchall()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        logger.error(f"Failed to load consumption entries for {user_id}: {e}")
+        return []
+
+
+def get_consumption_dates(user_id: str, limit: int = 60) -> list:
+    """Distinct dates (newest first) that have at least one food-log entry —
+    used to populate the Food Logs page's date picker with real history."""
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(
+                """SELECT DISTINCT log_date FROM consumption_log
+                   WHERE user_id = ? ORDER BY log_date DESC LIMIT ?""",
+                (user_id, limit),
+            ).fetchall()
+        return [r["log_date"] for r in rows]
+    except Exception as e:
+        logger.error(f"Failed to load consumption dates for {user_id}: {e}")
+        return []
+
+
+def delete_consumption_entry(log_id: int, user_id: str) -> bool:
+    """Remove a single Food Log entry (scoped to user_id so one user can
+    never delete another's row)."""
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                "DELETE FROM consumption_log WHERE log_id = ? AND user_id = ?",
+                (log_id, user_id),
+            )
+        return True
+    except Exception as e:
+        logger.error(f"Failed to delete consumption entry {log_id} for {user_id}: {e}")
+        return False

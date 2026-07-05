@@ -59,12 +59,12 @@ c1, c2, c3 = st.columns([2, 2, 1])
 with c1:
     qa = st.text_input(
         "Product A", value=st.session_state.get("cmp_a", ""),
-        placeholder="e.g. Nutella", key="qa_in",
+        placeholder="e.g. Nutella", key="cmp_prod_a_in",
     )
 with c2:
     qb = st.text_input(
         "Product B", value=st.session_state.get("cmp_b", ""),
-        placeholder="e.g. Alpro oat milk", key="qb_in",
+        placeholder="e.g. Alpro oat milk", key="cmp_prod_b_in",
     )
 with c3:
     st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)

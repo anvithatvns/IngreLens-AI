@@ -56,7 +56,14 @@
       "Bash(python3 -m py_compile shared_ui.py app.py)",
       "Bash(awk 'NR>=673 && NR<=760 {print length\\($0\\), NR}' shared_ui.py)",
       "Bash(awk 'NR>=688 && NR<=760 && length\\($0\\)<2000' shared_ui.py)",
-      "Bash(python3 -c \"import streamlit; print\\(streamlit.__file__\\)\")"
+      "Bash(python3 -c \"import streamlit; print\\(streamlit.__file__\\)\")",
+      "Bash(git push *)",
+      "Read(//tmp/**)",
+      "Bash(git fetch *)",
+      "Bash(git ls-remote *)",
+      "Bash(git status *)",
+      "Bash(python3 -m py_compile \"pages/4_⚖️_Comparison.py\")",
+      "Bash(python3 -m py_compile shared_ui.py \"pages/5_👤_Preferences.py\")"
     ]
   }
 }

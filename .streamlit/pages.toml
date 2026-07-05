@@ -19,6 +19,10 @@ path = "pages/4_⚖️_Comparison.py"
 name = "⚖️ Comparison"
 
 [[pages]]
+path = "pages/8_🍽️_Food_Logs.py"
+name = "🍽️ Food Logs"
+
+[[pages]]
 path = "pages/5_👤_Preferences.py"
 name = "👤 Preferences"
 

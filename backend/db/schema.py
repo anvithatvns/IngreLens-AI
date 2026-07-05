@@ -46,6 +46,8 @@ TABLE_STATEMENTS = [
         protein      REAL DEFAULT 0,
         fat          REAL DEFAULT 0,
         sugar        REAL DEFAULT 0,
+        quantity     REAL,
+        unit         TEXT,
         log_date     TEXT NOT NULL,
         timestamp    TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -108,6 +110,9 @@ COLUMN_MIGRATIONS = [
     ("user_preferences", "age", "INTEGER"),
     ("user_preferences", "height_cm", "REAL"),
     ("user_preferences", "weight_kg", "REAL"),
+    ("consumption_log", "quantity", "REAL"),
+    ("consumption_log", "unit", "TEXT"),
+    ("user_preferences", "diet_modes", "TEXT"),
 ]
 
 INDEX_STATEMENTS = [

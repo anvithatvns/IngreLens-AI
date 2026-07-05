@@ -11,21 +11,21 @@ enter_page("preferences")
 
 render_page_header("👤", "My Preferences", "Personalize IngreLens AI for your diet, allergen concerns, and health goals")
 
-prefs=st.session_state.get("user_prefs",{"diet":"None","allergens":[],"health_goals":[]})
+prefs = st.session_state.get("user_prefs", {"diet": "None", "diet_modes": [], "allergens": [], "health_goals": []})
 saved_profile = db.get_user_preferences(st.session_state.user_id) or {}
-cl,cr=st.columns([3,2])
-with cl:
-    st.markdown("### 🥗 Diet Mode")
-    diets=["None","Vegan","Vegetarian","Pescatarian","Keto","Gluten-Free","Low Sugar","Dairy-Free","Nut-Free","Raw Vegan"]
-    diet=st.radio("",options=diets,index=diets.index(prefs.get("diet","None")),horizontal=True)
-    st.markdown("---\n### ⚠️ Allergen Alerts")
-    al_opts=["Dairy","Eggs","Gluten","Soy","Peanuts","Tree Nuts","Fish","Shellfish","Sesame","Wheat","Mustard","Sulphites"]
-    sel_al=st.multiselect("",options=al_opts,default=prefs.get("allergens",[]),label_visibility="collapsed")
-    st.markdown("---\n### 🎯 Health Goals")
-    g_opts=["Weight loss","Muscle gain","Diabetes-friendly","Heart health","Clean eating","Low sodium","Low sugar","High fiber","Anti-inflammatory"]
-    sel_g=st.multiselect("",options=g_opts,default=prefs.get("health_goals",[]),label_visibility="collapsed")
 
-    st.markdown("---\n### 📏 Body Profile")
+# Backward compatibility: older sessions/rows only ever had a single "diet"
+# string — normalize to a list so the checkbox UI below always has an array
+# to work with, regardless of which shape the data was saved in.
+prev_modes = prefs.get("diet_modes")
+if not prev_modes:
+    legacy_diet = prefs.get("diet")
+    prev_modes = [legacy_diet] if legacy_diet and legacy_diet != "None" else (saved_profile.get("diet_modes") or [])
+
+cl, cr = st.columns([3, 2])
+with cl:
+    # 1. Body Profile ─────────────────────────────────────────────────────────
+    st.markdown("### 📏 Body Profile")
     st.caption("Used to calculate your BMI and daily calorie/protein targets.")
     bp1, bp2 = st.columns(2)
     with bp1:
@@ -39,10 +39,38 @@ with cl:
         weight_kg = st.number_input("Weight (kg)", min_value=0.0, max_value=300.0,
                                      value=float(saved_profile.get("weight_kg") or 0), step=0.5)
 
+    # 2. Diet Mode — multi-select checkboxes (was single-select radio) ────────
+    st.markdown("---\n### 🥗 Diet Mode")
+    st.caption("Select all that apply")
+    diet_opts = ["Vegan", "Vegetarian", "Pescatarian", "Keto", "Gluten-Free",
+                 "Low Sugar", "Dairy-Free", "Nut-Free", "Raw Vegan"]
+    dcols = st.columns(3)
+    diet_modes = []
+    for i, d in enumerate(diet_opts):
+        with dcols[i % 3]:
+            if st.checkbox(d, value=(d in prev_modes), key=f"diet_cb_{d}"):
+                diet_modes.append(d)
+    if not diet_modes:
+        diet_modes = ["None"]
+
+    # 3. Allergen Alerts ────────────────────────────────────────────────────────
+    st.markdown("---\n### ⚠️ Allergen Alerts")
+    al_opts = ["Dairy", "Eggs", "Gluten", "Soy", "Peanuts", "Tree Nuts", "Fish", "Shellfish", "Sesame", "Wheat", "Mustard", "Sulphites"]
+    sel_al = st.multiselect("", options=al_opts, default=prefs.get("allergens", []), label_visibility="collapsed")
+
+    # 4. Health Goals ────────────────────────────────────────────────────────────
+    st.markdown("---\n### 🎯 Health Goals")
+    g_opts = ["Weight loss", "Muscle gain", "Diabetes-friendly", "Heart health", "Clean eating", "Low sodium", "Low sugar", "High fiber", "Anti-inflammatory"]
+    sel_g = st.multiselect("", options=g_opts, default=prefs.get("health_goals", []), label_visibility="collapsed")
+
     if st.button("💾 Save Preferences", type="primary"):
-        st.session_state.user_prefs={"diet":diet,"allergens":sel_al,"health_goals":sel_g}
+        diet_display = ", ".join(diet_modes) if diet_modes != ["None"] else "None"
+        st.session_state.user_prefs = {
+            "diet": diet_display, "diet_modes": diet_modes,
+            "allergens": sel_al, "health_goals": sel_g,
+        }
         db.save_user_preferences(
-            st.session_state.user_id, diet_type=diet, allergies=sel_al,
+            st.session_state.user_id, diet_modes=diet_modes, allergies=sel_al,
             gender=gender, age=age or None, height_cm=height_cm or None, weight_kg=weight_kg or None,
         )
         log_activity("Preference Update", "Preferences")
@@ -50,8 +78,10 @@ with cl:
         st.rerun()
 with cr:
     st.markdown("### 📋 Your Profile")
-    p=st.session_state.get("user_prefs",{})
-    st.markdown(f'<div style="background:{SAGE["offwhite"]};border-radius:14px;padding:1.4rem;border:1px solid {SAGE["pale"]}"><div style="margin-bottom:0.8rem"><b>Diet Mode</b><br><span style="color:{SAGE["mid"]};font-weight:600">{p.get("diet","Not set")}</span></div><div style="margin-bottom:0.8rem"><b>Allergen Alerts</b><br>{", ".join(p.get("allergens",[])) or "None"}</div><div><b>Health Goals</b><br>{", ".join(p.get("health_goals",[])) or "None"}</div></div>', unsafe_allow_html=True)
+    p = st.session_state.get("user_prefs", {})
+    modes = p.get("diet_modes") or ([p["diet"]] if p.get("diet") and p.get("diet") != "None" else [])
+    diet_summary = ", ".join(modes) if modes else "Not set"
+    st.markdown(f'<div style="background:{SAGE["offwhite"]};border-radius:14px;padding:1.4rem;border:1px solid {SAGE["pale"]}"><div style="margin-bottom:0.8rem"><b>Diet Mode</b><br><span style="color:{SAGE["mid"]};font-weight:600">{diet_summary}</span></div><div style="margin-bottom:0.8rem"><b>Allergen Alerts</b><br>{", ".join(p.get("allergens",[])) or "None"}</div><div><b>Health Goals</b><br>{", ".join(p.get("health_goals",[])) or "None"}</div></div>', unsafe_allow_html=True)
 
     targets = db.compute_bmi_and_targets(
         saved_profile.get("gender"), saved_profile.get("age"),

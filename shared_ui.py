@@ -4,6 +4,7 @@ IngreLens AI — Shared UI: Sage & Stone palette + real logo.
 import streamlit as st
 import base64
 import hashlib
+import re
 from pathlib import Path
 
 from backend.db import database as db
@@ -792,6 +793,7 @@ _NAV_CENTER = [
     ("pages/2_🔍_Analyzer.py", "Search Product", "🔍"),
     ("pages/3_🔢_Barcode_Lookup.py", "Barcode Lookup", "🔢"),
     ("pages/4_⚖️_Comparison.py", "Compare Products", "⚖️"),
+    ("pages/8_🍽️_Food_Logs.py", "Food Logs", "🍽️"),
 ]
 _NAV_RIGHT = [
     ("pages/5_👤_Preferences.py", "Preferences", "👤"),
@@ -818,7 +820,7 @@ def render_top_nav():
     )
 
     with st.container(key="il_topnav"):
-        col_logo, col_links, col_toggle = st.columns([1.3, 9.8, 0.3])
+        col_logo, col_links, col_toggle = st.columns([1.1, 10.6, 0.3])
         with col_logo:
             st.markdown(logo_html, unsafe_allow_html=True)
         with col_links:
@@ -826,7 +828,7 @@ def render_top_nav():
                 items = _NAV_CENTER + _NAV_RIGHT
                 # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
                 # No icons here (desktop pills) — every pixel goes to the label text.
-                _nav_ratios = [0.9, 1.1, 1.65, 1.65, 1.8, 1.35, 1.05, 0.9]
+                _nav_ratios = [0.9, 1.1, 1.65, 1.65, 1.8, 1.3, 1.35, 1.05, 0.9]
                 sub_cols = st.columns(_nav_ratios, gap="small")
                 for i, (target, label, icon) in enumerate(items):
                     with sub_cols[i]:
@@ -1333,86 +1335,165 @@ def render_agent_row():
         unsafe_allow_html=True,
     )
 
-@st.dialog("🍽️ Daily Consumption Check")
-def _show_consumption_dialog():
-    user_id = st.session_state.get("user_id")
-    daily = db.get_daily_consumption(user_id)
+DEFAULT_DAILY_TARGET = 2000  # kcal — used whenever no BMI-based target is set
+
+
+def _get_daily_target(user_id: str) -> dict:
+    """User-specific calorie/protein target from their BMI profile if set,
+    else a flat sensible default so Food Log features always work."""
     profile = db.get_user_preferences(user_id) or {}
     targets = db.compute_bmi_and_targets(
         profile.get("gender"), profile.get("age"), profile.get("height_cm"), profile.get("weight_kg")
     )
+    if targets:
+        return targets
+    return {"daily_calories": DEFAULT_DAILY_TARGET, "daily_protein": round(DEFAULT_DAILY_TARGET * 0.15 / 4)}
 
-    if not targets:
-        st.info("Set Gender/Age/Height/Weight in **Preferences** to compare against your daily allowance.")
-        st.markdown(
-            f"**Consumed today:** {daily['calories']:.0f} kcal · {daily['protein']:.1f}g protein · "
-            f"{daily['fat']:.1f}g fat · {daily['sugar']:.1f}g sugar"
+
+def _parse_quantity(product: dict):
+    """Best-effort unit-mode detection from a product's quantity/serving
+    string ('400g' -> weight, '6 pieces' -> count). Falls back to the
+    standard 100g reference basis nutriments are already stored in."""
+    qty_str = str((product or {}).get("quantity") or (product or {}).get("serving_size") or "").lower()
+    count_units = [("slice", "slices"), ("piece", "pieces"), ("pcs", "pieces"),
+                   ("bar", "bars"), ("cookie", "cookies"), ("biscuit", "biscuits"), ("item", "items")]
+    for kw, label in count_units:
+        if kw in qty_str:
+            m = re.search(r"(\d+(?:\.\d+)?)", qty_str)
+            return "count", (float(m.group(1)) if m else 1.0), label
+    m = re.search(r"(\d+(?:\.\d+)?)\s*ml\b", qty_str)
+    if m:
+        return "weight", float(m.group(1)), "ml"
+    m = re.search(r"(\d+(?:\.\d+)?)\s*g\b", qty_str)
+    if m:
+        return "weight", float(m.group(1)), "g"
+    return "weight", 100.0, "g"
+
+
+@st.dialog("How much did you consume?")
+def _show_portion_dialog(name: str, nm: dict, product: dict, btn_key: str):
+    mode, total_units, unit_label = _parse_quantity(product)
+    user_id = st.session_state.get("user_id")
+
+    if mode == "weight":
+        st.caption(f"Nutrition values are per 100{unit_label}. Enter how much you actually consumed.")
+        consumed = st.number_input(
+            f"Amount consumed ({unit_label})", min_value=0.0, max_value=2000.0,
+            value=min(float(total_units), 100.0), step=5.0, key=f"portion_amt_{btn_key}",
         )
-        return
+        ratio = consumed / 100.0
+    else:
+        st.caption(f"This package is about {total_units:g} {unit_label}.")
+        consumed = st.number_input(
+            f"How many {unit_label} did you eat?", min_value=0.0, max_value=total_units * 10,
+            value=1.0, step=1.0, key=f"portion_amt_{btn_key}",
+        )
+        ratio = (consumed / total_units) if total_units else 0.0
 
-    fat_target = round(targets["daily_calories"] * 0.3 / 9)  # ~30% of calories from fat
-    remaining_cal = max(targets["daily_calories"] - daily["calories"], 0)
-    remaining_protein = max(targets["daily_protein"] - daily["protein"], 0)
-    remaining_fat = max(fat_target - daily["fat"], 0)
+    ratio = max(0.0, ratio)
+    calories = (nm.get("energy") or 0) * ratio
+    protein  = (nm.get("protein") or 0) * ratio
+    fat      = (nm.get("fat") or 0) * ratio
+    sugar    = (nm.get("sugars") or 0) * ratio
 
+    targets = _get_daily_target(user_id)
+    daily_before = db.get_daily_consumption(user_id)
+    total_after = daily_before["calories"] + calories
+    remaining_after = max(targets["daily_calories"] - total_after, 0)
+    pct_of_day = min(100, round(total_after / targets["daily_calories"] * 100)) if targets["daily_calories"] else 0
+
+    st.markdown("---")
     c1, c2, c3 = st.columns(3)
-    c1.metric("Calories", f'{daily["calories"]:.0f} / {targets["daily_calories"]}', f'{remaining_cal:.0f} left')
-    c2.metric("Protein", f'{daily["protein"]:.1f}g / {targets["daily_protein"]}g', f'{remaining_protein:.1f}g left')
-    c3.metric("Fat", f'{daily["fat"]:.1f}g / {fat_target}g', f'{remaining_fat:.1f}g left')
-    st.caption(f'Sugar consumed today: {daily["sugar"]:.1f}g')
+    c1.metric("This portion", f"{calories:.0f} kcal")
+    c2.metric("Protein", f"{protein:.1f}g")
+    c3.metric("Fat", f"{fat:.1f}g")
+    st.caption(
+        f"If logged: **{total_after:.0f} / {targets['daily_calories']} kcal** today "
+        f"({pct_of_day}% of target) · **{remaining_after:.0f} kcal** would remain"
+    )
 
     try:
         import plotly.express as px
         fig = px.pie(
-            names=["Consumed", "Remaining"],
-            values=[daily["calories"], remaining_cal],
-            hole=0.5, color=["Consumed", "Remaining"],
-            color_discrete_map={"Consumed": "#e34948", "Remaining": "#1baf7a"},
+            names=["Consumed (incl. this)", "Remaining"],
+            values=[pct_of_day, max(100 - pct_of_day, 0)],
+            hole=0.5, color=["Consumed (incl. this)", "Remaining"],
+            color_discrete_map={"Consumed (incl. this)": "#e34948", "Remaining": "#1baf7a"},
         )
         fig.update_traces(textinfo="percent+label")
-        fig.update_layout(height=240, margin=dict(t=30, b=0, l=0, r=0),
-                           paper_bgcolor="rgba(0,0,0,0)", title="Calories: Consumed vs Remaining")
-        st.plotly_chart(fig, use_container_width=True, key="consumption_check_pie")
+        fig.update_layout(height=220, margin=dict(t=10, b=0, l=0, r=0), paper_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig, use_container_width=True, key=f"portion_pie_{btn_key}")
     except ImportError:
-        st.caption("Install plotly for the comparison chart: `pip install plotly`")
+        pass
+
+    if st.button("➕ Add to Food Log", key=f"add_food_log_{btn_key}", type="primary", use_container_width=True):
+        db.log_consumption(
+            user_id, name, calories=calories, protein=protein, fat=fat, sugar=sugar,
+            quantity=consumed, unit=unit_label,
+        )
+        log_activity("Food Log Add", "Analysis")
+        st.success(f"✅ Logged {calories:.0f} kcal to today's Food Log.")
+        st.rerun()
 
 
 def render_consumption_checker(result, product=None, key_suffix=""):
-    """'Check' button below scan results — logs the product's nutrients for
-    today and opens a modal comparing consumption vs. the user's daily target."""
+    """'Check' button below scan results. Gates on login first (no BMI/portion
+    screens are shown to a logged-out user), then opens a portion-size modal
+    that computes proportional nutrition for what was actually eaten — not
+    the whole package — before offering to add it to the Food Log."""
     nm = (product or {}).get("nutriments", {}) or {}
     if not any(nm.values()):
         return
     name = getattr(result, "product_name", "Product")
     btn_key = f"check_consumption_{key_suffix}_{name}"[:150]
+    open_key = f"_consumption_open_{btn_key}"
+
     if st.button("✅ Check Daily Consumption", key=btn_key,
-                 help="Log this product and see today's intake vs. your daily target"):
-        db.log_consumption(
-            st.session_state.get("user_id"), name,
-            calories=nm.get("energy") or 0, protein=nm.get("protein") or 0,
-            fat=nm.get("fat") or 0, sugar=nm.get("sugars") or 0,
-        )
-        log_activity("Consumption Check", "Analysis")
-        _show_consumption_dialog()
+                 help="See how this fits into today's intake before logging it"):
+        st.session_state[open_key] = True
+
+    if not st.session_state.get(open_key):
+        return
+
+    if not st.session_state.get("auth_user"):
+        st.warning("🔒 Please log in to continue tracking your daily consumption")
+        with st.form(key=f"inline_login_{btn_key}"):
+            email = st.text_input("Email", key=f"il_email_{btn_key}")
+            pw = st.text_input("Password", type="password", key=f"il_pw_{btn_key}")
+            submitted = st.form_submit_button("Sign In")
+        if submitted:
+            user = db.authenticate(email, pw)
+            if user:
+                do_login(user)
+                st.rerun()
+            else:
+                st.error("Invalid email or password.")
+        return
+
+    _show_portion_dialog(name, nm, product or {}, btn_key)
 
 
 def render_dietary_alerts(result):
     """Cross-check this analysis against the signed-in user's saved diet/allergies."""
     prefs = st.session_state.get("user_prefs", {})
-    diet = prefs.get("diet") or "None"
+    # diet_modes (new multi-select) takes precedence; fall back to the old
+    # single "diet" string so sessions saved before the multi-select change
+    # still trigger the same conflict checks.
+    diet_modes = prefs.get("diet_modes") or ([prefs["diet"]] if prefs.get("diet") and prefs.get("diet") != "None" else [])
     user_allergens = [a.lower() for a in prefs.get("allergens", [])]
     detected_allergens = [a.lower() for a in (result.allergens_detected or [])]
     diet_category = getattr(result, "diet_category", result.overall_vegan)
 
     conflicts = []
-    if diet == "Vegan" and diet_category != "Vegan":
-        conflicts.append(f"You follow a **Vegan** diet, but this product is classified **{diet_category}**.")
-    elif diet == "Vegetarian" and diet_category == "Non-Vegetarian":
-        conflicts.append(f"You follow a **Vegetarian** diet, but this product is **{diet_category}**.")
-    elif diet == "Dairy-Free" and any("dairy" in a or "milk" in a for a in detected_allergens):
-        conflicts.append("You've set **Dairy-Free**, but dairy was detected in this product.")
-    elif diet == "Nut-Free" and any("nut" in a for a in detected_allergens):
-        conflicts.append("You've set **Nut-Free**, but nuts were detected in this product.")
+    for diet in diet_modes:
+        if diet == "Vegan" and diet_category != "Vegan":
+            conflicts.append(f"You follow a **Vegan** diet, but this product is classified **{diet_category}**.")
+        elif diet == "Vegetarian" and diet_category == "Non-Vegetarian":
+            conflicts.append(f"You follow a **Vegetarian** diet, but this product is **{diet_category}**.")
+        elif diet == "Dairy-Free" and any("dairy" in a or "milk" in a for a in detected_allergens):
+            conflicts.append("You've set **Dairy-Free**, but dairy was detected in this product.")
+        elif diet == "Nut-Free" and any("nut" in a for a in detected_allergens):
+            conflicts.append("You've set **Nut-Free**, but nuts were detected in this product.")
 
     for ua in user_allergens:
         for da in detected_allergens:
@@ -1432,7 +1513,37 @@ def render_dietary_alerts(result):
         )
 
 
+def _scroll_to_anchor(anchor_id: str):
+    """Smooth-scrolls the real page (not the sandboxed iframe) to a given
+    element id. st.markdown's HTML doesn't execute <script> tags (React's
+    dangerouslySetInnerHTML leaves them inert), so this uses
+    components.v1.html — its iframe DOES run scripts — and reaches back out
+    to the parent document, which is where the actual page content lives."""
+    import streamlit.components.v1 as components
+    components.html(
+        f"""<script>
+        (function() {{
+            const doc = window.parent.document;
+            const el = doc.getElementById('{anchor_id}');
+            if (el) {{ el.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+        }})();
+        </script>""",
+        height=0,
+    )
+
+
 def full_analysis_display(result, product=None, key_suffix="main"):
+    # Smooth-scroll to the results the first time THIS analysis renders (not
+    # on every later rerun within the same page, e.g. clicking Check Daily
+    # Consumption below) — gated on a per-(page, product) flag.
+    name_id = getattr(result, "product_name", "") or (product or {}).get("name", "")
+    anchor_id = f"il-analysis-{key_suffix}".replace(" ", "_")
+    scroll_flag = f"_scrolled_{key_suffix}_{name_id}"
+    st.markdown(f'<div id="{anchor_id}"></div>', unsafe_allow_html=True)
+    if not st.session_state.get(scroll_flag):
+        st.session_state[scroll_flag] = True
+        _scroll_to_anchor(anchor_id)
+
     render_dietary_alerts(result)
 
     nm = (product or {}).get("nutriments", {}) or {}
