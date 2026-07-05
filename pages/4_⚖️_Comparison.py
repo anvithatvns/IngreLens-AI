@@ -2,17 +2,19 @@
 import streamlit as st, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from shared_ui import (inject_css, init_state, render_sidebar, render_page_header, add_history,
+from shared_ui import (inject_css, init_state, render_top_nav, render_page_header, add_history,
                         render_verdict_card, render_health_score, render_nutriscore,
                         render_allergen_pills, render_ingredient_cards,
                         verdict_emoji, verdict_color, get_logo_b64, SAGE,
                         cached_analyze, log_activity, render_nutrition_pie, render_dietary_alerts,
-                        render_consumption_checker)
+                        render_consumption_checker,
+                        enter_page)
 from backend.services.analysis_service import IngredientAnalysisService
 from backend.services.product_service import ProductFetchService
 
 st.set_page_config(page_title="Compare · IngreLens AI", page_icon="⚖️", layout="wide")
-inject_css(); init_state(); render_sidebar()
+inject_css(); init_state(); render_top_nav()
+enter_page("comparison")
 
 @st.cache_resource(show_spinner=False)
 def get_svc(): return IngredientAnalysisService(), ProductFetchService()
@@ -109,8 +111,8 @@ def show_comparison(ra, rb, pa, pb):
         "Uncertain":"⚠️ Uncertain","Not Vegan":"❌ Not Vegan",
     }
     DIET_COLORS = {
-        "Vegan":"#1e8449","Vegetarian":"#27ae60","Eggetarian":"#e67e22",
-        "Non-Vegetarian":"#c0392b","Uncertain":"#f39c12","Not Vegan":"#c0392b",
+        "Vegan":"#2ecc71","Vegetarian":"#4cd787","Eggetarian":"#f39c4a",
+        "Non-Vegetarian":"#ff6b5a","Uncertain":"#ffc247","Not Vegan":"#ff6b5a",
     }
 
     def diet_label(r):
@@ -164,7 +166,7 @@ def show_comparison(ra, rb, pa, pb):
                 f'<div style="background:{dc}22;border-left:4px solid {dc};'
                 f'border-radius:12px;padding:14px 16px;margin-bottom:12px">'
                 f'<div style="font-size:1.4rem;font-weight:700;color:{dc}">{di}</div>'
-                f'<div style="font-size:1.1rem;font-weight:700;color:#2d3d35;margin-top:2px">'
+                f'<div style="font-size:1.1rem;font-weight:700;color:{SAGE["charcoal"]};margin-top:2px">'
                 f'{prod.get("name","")}</div>'
                 f'<div style="font-size:0.78rem;color:{SAGE["stone"]}">'
                 f'Conf: {int(result.vegan_confidence*100)}% · '

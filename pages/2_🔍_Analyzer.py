@@ -2,13 +2,15 @@
 import streamlit as st, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from shared_ui import (inject_css, init_state, render_sidebar, render_page_header, add_history,
-                        full_analysis_display, get_logo_b64, SAGE, cached_analyze, log_activity)
+from shared_ui import (inject_css, init_state, render_top_nav, render_page_header, add_history,
+                        full_analysis_display, get_logo_b64, SAGE, cached_analyze, log_activity,
+                        enter_page)
 from backend.services.analysis_service import IngredientAnalysisService
 from backend.services.product_service import ProductFetchService
 
 st.set_page_config(page_title="Analyzer · IngreLens AI", page_icon="🔍", layout="wide")
-inject_css(); init_state(); render_sidebar()
+inject_css(); init_state(); render_top_nav()
+enter_page("analyzer")
 
 @st.cache_resource(show_spinner=False)
 def get_svc(): return IngredientAnalysisService(), ProductFetchService()
@@ -299,10 +301,10 @@ if "analyzer_products" in st.session_state:
             for i, s in enumerate(suggestions):
                 with sc[i]:
                     st.markdown(
-                        f'<div style="background:#f4f1ee;border:1px solid #c5dcd7;'
+                        f'<div style="background:{SAGE["offwhite"]};border:1px solid {SAGE["pale"]};'
                         f'border-radius:10px;padding:10px;text-align:center;margin-bottom:4px">'
-                        f'<div style="font-weight:700;font-size:0.9rem">{s["name"]}</div>'
-                        f'<div style="font-size:0.72rem;color:#6b7870">{s["brand"]}</div></div>',
+                        f'<div style="font-weight:700;font-size:0.9rem;color:{SAGE["charcoal"]}">{s["name"]}</div>'
+                        f'<div style="font-size:0.72rem;color:{SAGE["stone"]}">{s["brand"]}</div></div>',
                         unsafe_allow_html=True,
                     )
                     if st.button(f'Search "{s["name"]}"', key=f"suggest_btn_{i}",
@@ -370,7 +372,7 @@ if "analyzer_products" in st.session_state:
                         preview = ing[:150] + "…" if len(ing) > 150 else ing
                         st.markdown(
                             f'<div style="font-size:0.78rem;color:{SAGE["stone"]};'
-                            f'background:#f4f1ee;border-radius:8px;padding:6px 10px;margin:4px 0">'
+                            f'background:{SAGE["offwhite"]};border-radius:8px;padding:6px 10px;margin:4px 0">'
                             f'<b>Ingredients:</b> {preview}</div>',
                             unsafe_allow_html=True,
                         )

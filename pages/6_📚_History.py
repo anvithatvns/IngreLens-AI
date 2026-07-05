@@ -2,12 +2,14 @@
 import streamlit as st, sys, json
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from shared_ui import (inject_css, init_state, render_sidebar, render_page_header,
+from shared_ui import (inject_css, init_state, render_top_nav, render_page_header,
                         verdict_emoji, verdict_color, get_logo_b64,
-                        full_analysis_display, SAGE, log_activity)
+                        full_analysis_display, SAGE, log_activity,
+                        enter_page)
 
 st.set_page_config(page_title="History · IngreLens AI", page_icon="📚", layout="wide")
-inject_css(); init_state(); render_sidebar()
+inject_css(); init_state(); render_top_nav()
+enter_page("history")
 log_activity("History View", "History")
 
 render_page_header("📚", "Scan History", "Review all your previous ingredient analyses and dietary trends")
@@ -66,8 +68,8 @@ c1, c2, c3, c4 = st.columns(4)
 for col, lbl, val, vc in [
     (c1, "Total Scans",   len(h),                    SAGE["charcoal"]),
     (c2, "🌱 Vegan",      counts.get("Vegan", 0),     SAGE["mid"]),
-    (c3, "❌ Not Vegan",  counts.get("Not Vegan", 0), "#b84a3a"),
-    (c4, "⚠️ Uncertain",  counts.get("Uncertain", 0), "#c4962a"),
+    (c3, "❌ Not Vegan",  counts.get("Not Vegan", 0), "#e5584a"),
+    (c4, "⚠️ Uncertain",  counts.get("Uncertain", 0), "#e0ab3a"),
 ]:
     with col:
         st.markdown(
@@ -85,7 +87,7 @@ try:
     import plotly.express as px, pandas as pd
     df = pd.DataFrame(h)
     ch1, ch2 = st.columns(2)
-    color_map = {"Vegan": SAGE["mid"], "Not Vegan": "#b84a3a", "Uncertain": "#c4962a"}
+    color_map = {"Vegan": SAGE["mid"], "Not Vegan": "#e5584a", "Uncertain": "#e0ab3a"}
 
     with ch1:
         pie = df["verdict"].value_counts().reset_index()
@@ -132,7 +134,7 @@ for i, item in enumerate(filtered):
     emj = verdict_emoji(item["verdict"])
 
     DIET_ICONS  = {"Vegan":"🌱","Vegetarian":"🧀","Eggetarian":"🥚","Non-Vegetarian":"🍖","Uncertain":"⚠️"}
-    DIET_COLORS = {"Vegan":"#1e8449","Vegetarian":"#27ae60","Eggetarian":"#e67e22","Non-Vegetarian":"#c0392b","Uncertain":"#f39c12"}
+    DIET_COLORS = {"Vegan":"#2ecc71","Vegetarian":"#4cd787","Eggetarian":"#f39c4a","Non-Vegetarian":"#ff6b5a","Uncertain":"#ffc247"}
     diet = item.get("diet_category", item.get("verdict",""))
     d_icon  = DIET_ICONS.get(diet, emj)
     d_color = DIET_COLORS.get(diet, vc)

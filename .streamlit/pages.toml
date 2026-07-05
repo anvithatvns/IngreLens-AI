@@ -11,6 +11,10 @@ path = "pages/2_🔍_Analyzer.py"
 name = "🔍 Analyzer"
 
 [[pages]]
+path = "pages/3_🔢_Barcode_Lookup.py"
+name = "🔢 Barcode Lookup"
+
+[[pages]]
 path = "pages/4_⚖️_Comparison.py"
 name = "⚖️ Comparison"
 
@@ -21,3 +25,7 @@ name = "👤 Preferences"
 [[pages]]
 path = "pages/6_📚_History.py"
 name = "📚 History"
+
+[[pages]]
+path = "pages/7_ℹ️_About.py"
+name = "ℹ️ About"

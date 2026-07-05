@@ -2,11 +2,12 @@
 import streamlit as st, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from shared_ui import inject_css, init_state, render_sidebar, render_page_header, get_logo_b64, SAGE, log_activity
+from shared_ui import inject_css, init_state, render_top_nav, render_page_header, get_logo_b64, SAGE, log_activity, enter_page
 from backend.db import database as db
 
 st.set_page_config(page_title="Preferences · IngreLens AI", page_icon="👤", layout="wide")
-inject_css(); init_state(); render_sidebar()
+inject_css(); init_state(); render_top_nav()
+enter_page("preferences")
 
 render_page_header("👤", "My Preferences", "Personalize IngreLens AI for your diet, allergen concerns, and health goals")
 

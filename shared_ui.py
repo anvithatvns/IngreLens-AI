@@ -8,19 +8,19 @@ from pathlib import Path
 
 from backend.db import database as db
 
-# ── Sage & Stone color tokens ──────────────────────────────────────────────────
+# ── Cinematic near-black + chartreuse/jade tokens (matches reference artifact) ──
 SAGE = {
-    "darkest":  "#2d4a3e",   # Sidebar bg, deepest text
-    "dark":     "#3d6b5e",   # Hero gradient end
-    "mid":      "#4a7c6f",   # Primary interactive
-    "accent":   "#6aab9b",   # Buttons, highlights
-    "teal":     "#8da8a1",   # From logo — muted teal
-    "light":    "#c5dcd7",   # Tints, badges
-    "pale":     "#e2edeb",   # Card borders, light bg
-    "cream":    "#f5f2ee",   # Page background
-    "offwhite": "#faf8f5",   # Card surfaces
-    "stone":    "#6b7870",   # Secondary text
-    "charcoal": "#2d3d35",   # Body text
+    "darkest":  "#0b120f",   # Void background anchor — near-black (artifact bg-void)
+    "dark":     "#101a15",   # Sidebar/hero/footer gradient mid — near-black stage
+    "mid":      "#2fb586",   # Primary interactive + Vegan verdict — jade green
+    "accent":   "#c8ff5b",   # Buttons, highlights, glow — chartreuse lime
+    "teal":     "#6fae95",   # Muted secondary accent — soft jade-gray
+    "light":    "#d9f7c2",   # Light chartreuse tint — badge borders, shimmer text
+    "pale":     "rgba(200,255,91,0.16)",  # Subtle glass borders / chip fills
+    "cream":    "#0b120f",   # Page background — near-black
+    "offwhite": "#16211b",   # Card surfaces — dark panel
+    "stone":    "#9fb6aa",   # Secondary text — muted sage-gray
+    "charcoal": "#eaf2ed",   # Body text — near-white
 }
 
 BRAND_CSS = f"""
@@ -29,68 +29,349 @@ BRAND_CSS = f"""
 html,body,[class*="css"]{{font-family:'Inter',sans-serif!important}}
 #MainMenu,footer,.stDeployButton{{display:none!important}}
 header[data-testid="stHeader"]{{background:transparent}}
-.main .block-container{{padding:1.5rem 2rem 3rem;max-width:1200px}}
+.main .block-container{{padding:1.75rem 2.25rem 3.5rem;max-width:1240px}}
 
-/* ── SIDEBAR ── */
-[data-testid="stSidebar"]{{
-  background:linear-gradient(180deg,{SAGE['darkest']} 0%,{SAGE['dark']} 55%,{SAGE['darkest']} 100%)!important;
-  border-right:none!important
+/* ── ANIMATIONS ── */
+@keyframes ilFadeUp{{from{{opacity:0;transform:translateY(10px)}}to{{opacity:1;transform:translateY(0)}}}}
+@keyframes ilGlow{{0%,100%{{opacity:0.55}}50%{{opacity:0.9}}}}
+
+/* ── NATIVE SIDEBAR — replaced by top navigation, fully hidden ── */
+[data-testid="stSidebar"]{{display:none!important}}
+[data-testid="collapsedControl"]{{display:none!important}}
+.main .block-container{{padding-top:0.5rem}}
+
+/* ── TOP NAVIGATION ── */
+.st-key-il_topnav{{
+  position:sticky;top:0;z-index:998;margin:-0.5rem -0.25rem 1rem;
+  padding:10px 18px;background:rgba(11,18,15,0.82);
+  backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);
+  border-bottom:1px solid rgba(232,255,214,0.08);
 }}
-[data-testid="stSidebar"] *{{color:white!important}}
-[data-testid="stSidebar"] .stButton button{{
-  background:rgba(255,255,255,0.12)!important;
-  border:1px solid rgba(255,255,255,0.25)!important;
-  color:white!important;border-radius:8px!important;font-size:0.8rem!important
+.st-key-il_topnav [data-testid="stHorizontalBlock"]{{align-items:center}}
+.il-topnav-brand{{display:flex;align-items:center;gap:8px;white-space:nowrap}}
+.il-topnav-word{{font-weight:800;font-size:1.02rem;letter-spacing:-0.01em;color:{SAGE['charcoal']}}}
+.il-topnav-word b{{color:{SAGE['mid']}}}
+
+.st-key-il_topnav_links [data-testid="stPageLink"]{{
+  border-radius:10px!important;padding:6px 3px!important;
+  transition:background .22s ease, transform .22s ease!important;
 }}
-[data-testid="stSidebar"] hr{{border-color:rgba(255,255,255,0.18)!important}}
-[data-testid="stSidebar"] .stExpander{{display:none!important}}
-[data-testid="stSidebar"] [data-testid="stVerticalBlock"]>div:has(.stExpander){{display:none!important}}
+.st-key-il_topnav_links [data-testid="stPageLink"]:hover{{
+  background:rgba(232,255,214,0.06)!important;transform:translateY(-1px)!important;
+}}
+.st-key-il_topnav_links [data-testid="stPageLink"][aria-current="page"]{{
+  background:rgba(47,181,134,0.14)!important;
+  box-shadow:inset 0 -2px 0 {SAGE['mid']}!important;
+}}
+.st-key-il_topnav_links [data-testid="stPageLink"] p{{
+  font-size:0.9rem!important;font-weight:700!important;color:{SAGE['stone']}!important;
+  white-space:nowrap!important;
+}}
+.st-key-il_topnav_links [data-testid="stPageLink"][aria-current="page"] p{{color:{SAGE['charcoal']}!important}}
+
+/* Mobile hamburger toggle — hidden on desktop, shown under the breakpoint */
+.st-key-il_topnav_toggle{{display:none}}
+.st-key-il_topnav_toggle .stButton>button{{
+  background:transparent!important;border:1px solid rgba(232,255,214,0.16)!important;
+  color:{SAGE['charcoal']}!important;box-shadow:none!important;font-size:1.1rem!important;
+  padding:0.3rem 0.7rem!important;
+}}
+.st-key-il_mobile_nav_panel{{
+  margin:-0.5rem -0.25rem 1rem;padding:6px 10px 10px;
+  background:rgba(11,18,15,0.92);border-bottom:1px solid rgba(232,255,214,0.08);
+}}
+.st-key-il_mobile_nav_panel [data-testid="stPageLink"] p{{font-size:0.86rem!important;color:{SAGE['stone']}!important}}
+.st-key-il_mobile_nav_panel [data-testid="stPageLink"][aria-current="page"] p{{color:{SAGE['mid']}!important;font-weight:700!important}}
+
+@media (max-width:900px){{
+  .st-key-il_topnav_links{{display:none!important}}
+  .st-key-il_topnav_toggle{{display:block!important}}
+}}
+@media (min-width:901px){{
+  .st-key-il_mobile_nav_panel{{display:none!important}}
+}}
+
+/* ── STICKY GLASS HEADER (auth bar) ── */
+.st-key-il_authbar{{
+  position:sticky;top:0;z-index:999;padding:10px 4px;margin:-0.5rem -0.25rem 0.75rem;
+  background:rgba(6,10,18,0.72);backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}}
+.il-daily-target{{
+  display:inline-flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;
+  color:{SAGE['stone']};background:rgba(255,255,255,0.06);border:1px solid {SAGE['pale']};
+  border-radius:99px;padding:8px 18px;box-shadow:0 2px 10px rgba(0,0,0,0.2);
+}}
+.il-daily-target b{{font-size:1.15rem;color:{SAGE['mid']}}}
+
+/* ── PREMIUM LOGIN ── */
+.st-key-il_login_btn [data-testid="stPopoverButton"],
+.st-key-il_login_btn .stButton>button{{
+  background:linear-gradient(180deg,{SAGE['mid']} 0%,#1c5c45 100%)!important;
+  color:{SAGE['charcoal']}!important;border:1px solid rgba(232,255,214,0.16)!important;
+  border-radius:99px!important;font-weight:700!important;padding:0.6rem 1.4rem!important;
+  box-shadow:0 6px 20px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.16)!important;
+  transition:box-shadow .22s ease,transform .22s ease!important;
+}}
+.st-key-il_login_btn [data-testid="stPopoverButton"]:hover,
+.st-key-il_login_btn .stButton>button:hover{{
+  box-shadow:0 10px 26px rgba(47,181,134,0.4),inset 0 1px 0 rgba(255,255,255,0.2)!important;
+  transform:translateY(-2px) scale(1.03)!important;
+}}
+.st-key-il_user_badge{{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+}}
+.il-user-pill{{
+  display:inline-flex;align-items:center;gap:6px;font-weight:700;
+  color:{SAGE['charcoal']};background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(102,214,235,0.1));
+  border:1px solid {SAGE['light']};border-radius:99px;padding:8px 18px;
+  box-shadow:0 3px 12px rgba(0,0,0,0.22);backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);white-space:nowrap;
+}}
+.st-key-il_user_badge .stButton>button{{
+  border-radius:99px!important;padding:0.5rem 1.1rem!important;
+}}
 
 /* ── HERO ── */
 .il-hero{{
   background:linear-gradient(135deg,{SAGE['darkest']} 0%,{SAGE['dark']} 50%,{SAGE['mid']} 100%);
-  border-radius:20px;padding:2.4rem 2.5rem;color:white;margin-bottom:2rem;
-  position:relative;overflow:hidden
+  border-radius:24px;padding:2.6rem 2.7rem;color:white;margin-bottom:2rem;
+  position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.4);
+  animation:ilFadeUp .5s cubic-bezier(.2,.9,.3,1);
 }}
 .il-hero::before{{
-  content:'';position:absolute;top:-50px;right:-50px;
-  width:200px;height:200px;background:rgba(255,255,255,0.04);border-radius:50%
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:240px;height:240px;background:rgba(255,255,255,0.05);border-radius:50%;
+  filter:blur(2px);
 }}
-.il-hero h1{{font-size:2rem;font-weight:800;margin:0 0 0.3rem;color:white;letter-spacing:-0.01em}}
-.il-hero p{{font-size:1rem;opacity:0.88;margin:0;color:white}}
+.il-hero::after{{
+  content:'';position:absolute;inset:0;border-radius:24px;
+  border:1px solid rgba(255,255,255,0.08);pointer-events:none;
+}}
+.il-hero h1{{font-size:2.05rem;font-weight:800;margin:0 0 0.3rem;color:white;letter-spacing:-0.015em}}
+.il-hero p{{font-size:1.02rem;opacity:0.9;margin:0;color:white;line-height:1.5}}
 .il-tagline{{font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.65;margin-bottom:3px}}
 
+/* ── LOGO — hero brand treatment (header/sidebar/footer) ── */
+.il-logo-wrap{{position:relative;display:inline-block;animation:ilFadeUp .6s cubic-bezier(.2,.9,.3,1)}}
+.il-logo-glow{{
+  position:absolute;inset:-16px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(200,255,91,0.28),transparent 72%);
+  filter:blur(8px);animation:ilGlow 3.2s ease-in-out infinite;z-index:0;
+}}
+.il-logo-glass{{
+  position:relative;z-index:1;background:transparent;border:none;
+  padding:2px;animation:ilFloatYSubtle 5s ease-in-out infinite;
+}}
+.il-logo-glass img{{display:block;filter:
+  brightness(1.2) saturate(1.4)
+  drop-shadow(0.6px 0 0 rgba(255,255,255,0.85)) drop-shadow(-0.6px 0 0 rgba(255,255,255,0.85))
+  drop-shadow(0 0.6px 0 rgba(255,255,255,0.85)) drop-shadow(0 -0.6px 0 rgba(255,255,255,0.85))
+  drop-shadow(0 0 8px rgba(47,181,134,0.55))
+}}
+
+/* ── MEGA HERO (Home only) — premium animated landing ── */
+@keyframes ilBgDrift{{
+  0%{{background-position:0% 50%}}
+  50%{{background-position:100% 50%}}
+  100%{{background-position:0% 50%}}
+}}
+@keyframes ilFloatY{{
+  0%,100%{{transform:translateY(0)}}
+  50%{{transform:translateY(-14px)}}
+}}
+@keyframes ilFloatYSubtle{{
+  0%,100%{{transform:translateY(0)}}
+  50%{{transform:translateY(-4px)}}
+}}
+@keyframes ilShapeDrift{{
+  0%,100%{{transform:translate(0,0) scale(1)}}
+  50%{{transform:translate(20px,-30px) scale(1.08)}}
+}}
+@keyframes ilTaglineGlow{{
+  0%,100%{{filter:drop-shadow(0 0 14px rgba(200,255,91,0.35))}}
+  50%{{filter:drop-shadow(0 0 26px rgba(200,255,91,0.6))}}
+}}
+@keyframes ilFadeSlideUp{{
+  from{{opacity:0;transform:translateY(22px)}}
+  to{{opacity:1;transform:translateY(0)}}
+}}
+
+/* ── CINEMATIC SCAN SCENE (Home hero) — stickman + magnifying glass scanning
+   a barcode, sweeping scan-beam, rising data motes, AI-decode chips ── */
+@keyframes ilScanActorEnter{{from{{opacity:0;transform:translateY(14px)}}to{{opacity:1;transform:translateY(0)}}}}
+@keyframes ilScanArmApproach{{from{{transform:rotate(-16deg) translate(0,-10px)}}to{{transform:rotate(0deg) translate(0,0)}}}}
+@keyframes ilScanSweep{{
+  0%{{opacity:0;transform:translateY(-34px)}}
+  12%{{opacity:1}}
+  85%{{opacity:1}}
+  100%{{opacity:0;transform:translateY(34px)}}
+}}
+@keyframes ilScanMoteRise{{
+  0%{{opacity:0;transform:translateY(0) scale(.4)}}
+  18%{{opacity:1;transform:translateY(-8px) scale(1)}}
+  100%{{opacity:0;transform:translateY(-90px) scale(.7)}}
+}}
+@keyframes ilScanChipIn{{
+  from{{opacity:0;transform:translateY(16px) scale(.85)}}
+  60%{{opacity:1}}
+  to{{opacity:1;transform:translateY(0) scale(1)}}
+}}
+@keyframes ilScanIdleFloat{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-6px)}}}}
+
+.il-scan-scene{{position:relative;width:100%;max-width:340px;margin:0 auto 1.2rem;overflow:visible}}
+.il-scan-scene svg{{display:block;width:100%;height:auto}}
+.il-scan-actor{{animation:ilScanActorEnter .7s cubic-bezier(.2,.8,.2,1) both}}
+.il-scan-arm{{transform-origin:270px 170px;animation:ilScanArmApproach 1s .6s cubic-bezier(.3,.7,.3,1) both}}
+.il-scan-beam{{
+  stroke:{SAGE['accent']};stroke-width:3;opacity:0;
+  filter:drop-shadow(0 0 6px {SAGE['accent']}) drop-shadow(0 0 14px rgba(53,208,224,0.5));
+  animation:ilScanSweep 1.4s 1.55s cubic-bezier(.4,0,.2,1) both;
+}}
+.il-scan-mote{{fill:{SAGE['accent']};opacity:0;animation:ilScanMoteRise 2.2s ease-out both}}
+.il-scan-mote:nth-of-type(1){{animation-delay:2.45s}}
+.il-scan-mote:nth-of-type(2){{animation-delay:2.6s}}
+.il-scan-mote:nth-of-type(3){{animation-delay:2.7s}}
+.il-scan-mote:nth-of-type(4){{animation-delay:2.85s}}
+.il-scan-mote:nth-of-type(5){{animation-delay:2.95s}}
+.il-scan-mote:nth-of-type(6){{animation-delay:3.1s}}
+.il-scan-chip{{
+  opacity:0;
+  animation:ilScanChipIn .9s cubic-bezier(.2,.8,.2,1) var(--d,0s) both,
+    ilScanIdleFloat 4.2s ease-in-out calc(var(--d,0s) + 1.2s) infinite;
+}}
+.il-scan-chip rect{{fill:{SAGE['darkest']};stroke:{SAGE['accent']};stroke-width:1.6;filter:drop-shadow(0 3px 10px rgba(0,0,0,0.4))}}
+.il-scan-chip text{{fill:{SAGE['light']};font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.02em}}
+@media (max-width:640px){{.il-scan-scene{{max-width:260px}}}}
+
+.il-mega-hero{{
+  position:relative;overflow:hidden;border-radius:28px;margin-bottom:2.2rem;
+  padding:4.2rem 2rem 3.6rem;text-align:center;isolation:isolate;
+  background:radial-gradient(ellipse 60% 50% at 50% 45%,rgba(47,181,134,0.10),transparent 70%),{SAGE['darkest']};
+  box-shadow:0 20px 60px rgba(0,0,0,0.55);
+}}
+.il-mega-hero::after{{
+  content:'';position:absolute;inset:0;border-radius:28px;z-index:0;
+  border:1px solid rgba(232,255,214,0.07);pointer-events:none;
+}}
+.il-mega-shape{{position:absolute;border-radius:50%;filter:blur(46px);z-index:0;opacity:0.5;animation:ilShapeDrift 12s ease-in-out infinite}}
+.il-mega-shape.s1{{width:260px;height:260px;background:rgba(47,181,134,0.30);top:-60px;left:-40px;animation-duration:14s}}
+.il-mega-shape.s2{{width:220px;height:220px;background:rgba(200,255,91,0.16);bottom:-50px;right:-30px;animation-duration:17s;animation-delay:1s}}
+.il-mega-shape.s3{{width:180px;height:180px;background:rgba(232,255,214,0.08);top:40%;right:15%;animation-duration:11s;animation-delay:2s}}
+
+.il-mega-content{{position:relative;z-index:1;max-width:760px;margin:0 auto}}
+
+.il-mega-badge{{
+  display:inline-block;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  font-size:0.78rem;font-weight:600;color:{SAGE['accent']};
+  letter-spacing:0.16em;text-transform:uppercase;margin-bottom:1.2rem;
+  animation:ilFadeSlideUp .6s cubic-bezier(.2,.9,.3,1) both;
+}}
+
+.il-mega-logo-wrap{{
+  position:relative;display:inline-block;margin-bottom:1.2rem;
+  animation:ilFadeSlideUp .7s cubic-bezier(.2,.9,.3,1) .08s both;
+}}
+.il-mega-logo-glow{{
+  position:absolute;inset:-26px;border-radius:50%;z-index:0;
+  background:radial-gradient(closest-side,rgba(200,255,91,0.30),transparent 72%);
+  filter:blur(12px);animation:ilGlow 3.4s ease-in-out infinite;
+}}
+.il-mega-logo-glass{{
+  position:relative;z-index:1;background:transparent;border:none;padding:6px;
+  animation:ilFloatY 5s ease-in-out infinite;
+}}
+.il-mega-logo-glass img{{display:block;width:120px;filter:
+  brightness(1.2) saturate(1.4)
+  drop-shadow(0.8px 0 0 rgba(255,255,255,0.85)) drop-shadow(-0.8px 0 0 rgba(255,255,255,0.85))
+  drop-shadow(0 0.8px 0 rgba(255,255,255,0.85)) drop-shadow(0 -0.8px 0 rgba(255,255,255,0.85))
+  drop-shadow(0 0 10px rgba(47,181,134,0.55))
+}}
+
+.il-mega-title{{
+  font-size:clamp(2.4rem,6vw,4rem);font-weight:800;letter-spacing:-0.02em;line-height:1.05;
+  margin:0 0 0.7rem;color:{SAGE['charcoal']};
+  animation:ilFadeSlideUp .7s cubic-bezier(.2,.9,.3,1) .16s both;
+}}
+.il-mega-title span{{color:{SAGE['mid']}}}
+.il-mega-tagline{{
+  font-size:clamp(1.15rem,2.6vw,1.6rem);font-weight:700;letter-spacing:-0.01em;line-height:1.3;
+  margin:0 0 1.1rem;color:{SAGE['stone']};
+  animation:ilFadeSlideUp .8s cubic-bezier(.2,.9,.3,1) .24s both;
+}}
+.il-mega-tagline span{{
+  color:{SAGE['accent']};font-weight:800;
+  filter:drop-shadow(0 0 14px rgba(200,255,91,0.35));
+  animation:ilTaglineGlow 3.5s ease-in-out infinite;
+}}
+.il-mega-subtitle{{
+  font-size:1.02rem;color:{SAGE['teal']};line-height:1.65;max-width:560px;margin:0 auto;
+  animation:ilFadeSlideUp .8s cubic-bezier(.2,.9,.3,1) .32s both;
+}}
+@media (max-width:640px){{
+  .il-mega-hero{{padding:3rem 1.2rem 2.6rem;border-radius:22px}}
+  .il-mega-logo-glass img{{width:88px}}
+  .il-mega-subtitle{{font-size:0.92rem}}
+}}
+
 /* ── VERDICT ── */
-.verdict-vegan{{background:linear-gradient(135deg,#d4ebe5,#b8dbd3);border-left:5px solid {SAGE['mid']};border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0;box-shadow:0 4px 20px rgba(74,124,111,0.12)}}
-.verdict-notvegan{{background:linear-gradient(135deg,#f5e0dc,#edc4bb);border-left:5px solid #b84a3a;border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0;box-shadow:0 4px 20px rgba(184,74,58,0.12)}}
-.verdict-uncertain{{background:linear-gradient(135deg,#f7f0d8,#ede0b0);border-left:5px solid #c4962a;border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0}}
-.verdict-unknown{{background:{SAGE['pale']};border-left:5px solid {SAGE['teal']};border-radius:14px;padding:1.4rem 1.8rem;margin:0.8rem 0}}
+.verdict-vegan{{background:linear-gradient(135deg,rgba(23,201,168,0.16),rgba(23,201,168,0.06));border-left:5px solid {SAGE['mid']};border-radius:18px;padding:1.5rem 1.9rem;margin:0.8rem 0;box-shadow:0 6px 24px rgba(23,201,168,0.14)}}
+.verdict-notvegan{{background:linear-gradient(135deg,rgba(229,88,74,0.16),rgba(229,88,74,0.06));border-left:5px solid #e5584a;border-radius:18px;padding:1.5rem 1.9rem;margin:0.8rem 0;box-shadow:0 6px 24px rgba(229,88,74,0.14)}}
+.verdict-uncertain{{background:linear-gradient(135deg,rgba(224,171,58,0.16),rgba(224,171,58,0.06));border-left:5px solid #e0ab3a;border-radius:18px;padding:1.5rem 1.9rem;margin:0.8rem 0}}
+.verdict-unknown{{background:{SAGE['pale']};border-left:5px solid {SAGE['teal']};border-radius:18px;padding:1.5rem 1.9rem;margin:0.8rem 0}}
 .verdict-icon{{font-size:2rem;margin-bottom:3px}}
 .verdict-title{{font-size:1.4rem;font-weight:700;margin:0 0 0.3rem;color:{SAGE['charcoal']}}}
-.verdict-sub{{font-size:0.9rem;color:#4a5c55;margin:0;line-height:1.5}}
-.conf-bar-bg{{background:rgba(0,0,0,0.08);border-radius:99px;height:7px;margin-top:6px}}
+.verdict-sub{{font-size:0.9rem;color:{SAGE['stone']};margin:0;line-height:1.5}}
+.conf-bar-bg{{background:rgba(255,255,255,0.08);border-radius:99px;height:7px;margin-top:6px}}
 .conf-bar{{height:7px;border-radius:99px}}
 
 /* ── INGREDIENT CARDS ── */
-.ing-card{{background:{SAGE['offwhite']};border-radius:11px;padding:10px 12px;margin:3px 0;border:1px solid {SAGE['pale']};display:flex;align-items:flex-start;gap:9px;box-shadow:0 1px 6px rgba(45,74,62,0.05)}}
-.ing-card:hover{{box-shadow:0 3px 12px rgba(45,74,62,0.1)}}
+.ing-card{{background:{SAGE['offwhite']};border-radius:14px;padding:11px 13px;margin:4px 0;border:1px solid {SAGE['pale']};display:flex;align-items:flex-start;gap:9px;box-shadow:0 1px 6px rgba(0,0,0,0.16);transition:box-shadow .22s ease,transform .22s ease}}
+.ing-card:hover{{box-shadow:0 4px 16px rgba(0,0,0,0.28);transform:translateY(-1px)}}
 .ing-icon{{font-size:1rem;flex-shrink:0;margin-top:1px}}
 .ing-name{{font-weight:600;font-size:0.85rem;color:{SAGE['charcoal']}}}
 .ing-reason{{font-size:0.76rem;color:{SAGE['stone']};margin-top:1px;line-height:1.4}}
 .ing-alt{{font-size:0.7rem;color:{SAGE['mid']};font-weight:500;margin-top:3px}}
-.ing-card-nv{{border-left:3px solid #b84a3a;background:#fdf6f5}}
-.ing-card-unc{{border-left:3px solid #c4962a;background:#fdfaf2}}
-.ing-card-vegan{{border-left:3px solid {SAGE['mid']};background:#f4faf8}}
+.ing-card-nv{{border-left:3px solid #e5584a;background:rgba(229,88,74,0.09)}}
+.ing-card-unc{{border-left:3px solid #e0ab3a;background:rgba(224,171,58,0.09)}}
+.ing-card-vegan{{border-left:3px solid {SAGE['mid']};background:rgba(23,201,168,0.09)}}
 
 /* ── METRICS ── */
-.metric-row{{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:1rem 0}}
-.metric-card{{background:{SAGE['offwhite']};border:1px solid {SAGE['pale']};border-radius:13px;padding:1rem;text-align:center;box-shadow:0 2px 10px rgba(45,74,62,0.05)}}
+.metric-row{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1rem 0}}
+.metric-card{{background:{SAGE['offwhite']};border:1px solid {SAGE['pale']};border-radius:16px;padding:1.1rem;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.18);transition:box-shadow .22s ease,transform .22s ease}}
+.metric-card:hover{{box-shadow:0 6px 18px rgba(0,0,0,0.3);transform:translateY(-1px)}}
 .metric-icon{{font-size:1.3rem;margin-bottom:3px}}
 .metric-num{{font-size:1.5rem;font-weight:700;color:{SAGE['charcoal']};line-height:1}}
 .metric-lbl{{font-size:0.65rem;color:{SAGE['stone']};text-transform:uppercase;letter-spacing:0.06em;margin-top:3px}}
 
+/* ── st.metric widgets (BMI / Daily Calories / Daily Protein / Daily Target) ── */
+div[data-testid="stMetric"]{{
+  background:{SAGE['offwhite']};border-radius:18px;padding:1.35rem 1rem;
+  border:1px solid {SAGE['pale']};box-shadow:0 3px 14px rgba(0,0,0,0.16);
+  transition:box-shadow .22s ease,transform .22s ease;overflow:hidden;
+}}
+div[data-testid="stMetric"]:hover{{box-shadow:0 8px 22px rgba(0,0,0,0.26);transform:translateY(-2px)}}
+div[data-testid="stMetricLabel"]{{font-size:0.78rem!important;color:{SAGE['stone']}!important}}
+div[data-testid="stMetricValue"]{{
+  font-size:clamp(1.05rem,2.1vw,2rem)!important;font-weight:800!important;
+  color:{SAGE['charcoal']}!important;white-space:normal!important;
+  overflow-wrap:break-word;line-height:1.25!important;
+}}
+
+/* ── Daily Consumption dialog — tighter tiles, no clipping/overflow ── */
+div[role="dialog"] div[data-testid="stMetric"]{{
+  padding:0.85rem 0.6rem!important;min-height:92px;display:flex;flex-direction:column;
+  justify-content:center;
+}}
+div[role="dialog"] div[data-testid="stMetricLabel"]{{font-size:0.7rem!important}}
+div[role="dialog"] div[data-testid="stMetricValue"]{{
+  font-size:clamp(0.82rem,1.6vw,1.15rem)!important;line-height:1.2!important;
+}}
+div[role="dialog"] div[data-testid="stMetricDelta"]{{font-size:0.68rem!important}}
+
 /* ── HEALTH ── */
-.health-wrap{{background:{SAGE['offwhite']};border-radius:13px;padding:1.1rem 1.3rem;border:1px solid {SAGE['pale']};box-shadow:0 2px 10px rgba(45,74,62,0.05)}}
+.health-wrap{{background:{SAGE['offwhite']};border-radius:16px;padding:1.2rem 1.4rem;border:1px solid {SAGE['pale']};box-shadow:0 2px 10px rgba(0,0,0,0.18)}}
 .health-num{{font-size:2.2rem;font-weight:800;line-height:1}}
 .health-lbl{{font-size:0.65rem;color:{SAGE['stone']};text-transform:uppercase;letter-spacing:0.06em}}
 .health-bar-bg{{background:{SAGE['pale']};border-radius:99px;height:9px;margin-top:7px}}
@@ -98,29 +379,44 @@ header[data-testid="stHeader"]{{background:transparent}}
 
 /* ── PILLS ── */
 .pill{{display:inline-flex;align-items:center;gap:3px;border-radius:99px;padding:3px 11px;font-size:0.76rem;margin:2px;font-weight:500}}
-.pill-red{{background:#fde8e5;color:#8b2a1e;border:1px solid #f0bdb5}}
-.pill-orange{{background:#fdf3e0;color:#8b6210;border:1px solid #e8d098}}
-.pill-green{{background:#e2f0ec;color:#2d5a4a;border:1px solid {SAGE['light']}}}
-.pill-blue{{background:#e2ecf5;color:#1a4a7a;border:1px solid #b5cce0}}
-.pill-sage{{background:{SAGE['pale']};color:{SAGE['darkest']};border:1px solid {SAGE['light']}}}
+.pill-red{{background:rgba(229,88,74,0.16);color:#ff9686;border:1px solid rgba(229,88,74,0.4)}}
+.pill-orange{{background:rgba(224,171,58,0.16);color:#f2c766;border:1px solid rgba(224,171,58,0.4)}}
+.pill-green{{background:rgba(23,201,168,0.16);color:#6fe8cf;border:1px solid rgba(23,201,168,0.4)}}
+.pill-blue{{background:rgba(53,150,224,0.16);color:#8ec6f2;border:1px solid rgba(53,150,224,0.4)}}
+.pill-sage{{background:{SAGE['pale']};color:{SAGE['charcoal']};border:1px solid {SAGE['light']}}}
 
 /* ── SECTION HEADERS ── */
 .shdr{{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:{SAGE['stone']};margin:1.2rem 0 0.6rem}}
 
-/* ── BUTTONS ── */
+/* ── BUTTONS — premium dark-green glossy finish (no neon lime) ── */
 .stButton>button{{
-  background:linear-gradient(135deg,{SAGE['darkest']},{SAGE['mid']})!important;
-  color:white!important;border:none!important;border-radius:10px!important;
-  font-weight:600!important;font-size:0.88rem!important;
-  box-shadow:0 4px 14px rgba(74,124,111,0.28)!important;transition:all 0.2s!important
+  background:linear-gradient(180deg,{SAGE['mid']} 0%,#1c5c45 100%)!important;
+  color:{SAGE['charcoal']}!important;border:1px solid rgba(232,255,214,0.14)!important;
+  border-radius:14px!important;font-weight:700!important;font-size:0.88rem!important;
+  box-shadow:0 4px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.16)!important;
+  transition:box-shadow .2s ease,transform .2s ease!important;
 }}
 .stButton>button:hover{{
-  box-shadow:0 6px 20px rgba(74,124,111,0.42)!important;
-  transform:translateY(-1px)!important
+  box-shadow:0 8px 22px rgba(47,181,134,0.35),inset 0 1px 0 rgba(255,255,255,0.22)!important;
+  transform:translateY(-2px) scale(1.015)!important;
+}}
+.stButton>button:active{{transform:translateY(0) scale(0.99)!important}}
+
+/* ── HERO CTA — premium dark-green pill, same finish as other buttons ── */
+.st-key-get_started_cta .stButton>button{{
+  background:linear-gradient(180deg,#37c793 0%,#1a5540 100%)!important;
+  color:{SAGE['charcoal']}!important;border:1px solid rgba(232,255,214,0.18)!important;
+  border-radius:99px!important;font-weight:700!important;font-size:0.98rem!important;
+  padding:0.85rem 1rem!important;
+  box-shadow:0 6px 20px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.2)!important;
+}}
+.st-key-get_started_cta .stButton>button:hover{{
+  box-shadow:0 10px 28px rgba(47,181,134,0.4),inset 0 1px 0 rgba(255,255,255,0.24)!important;
+  transform:translateY(-2px) scale(1.02)!important;
 }}
 
 /* ── AGENT BADGES ── */
-.agent-badge{{display:inline-flex;align-items:center;gap:4px;background:{SAGE['pale']};color:{SAGE['darkest']};border:1px solid {SAGE['light']};border-radius:6px;padding:3px 9px;font-size:0.72rem;font-weight:500;margin:2px}}
+.agent-badge{{display:inline-flex;align-items:center;gap:4px;background:{SAGE['pale']};color:{SAGE['charcoal']};border:1px solid {SAGE['light']};border-radius:8px;padding:3px 9px;font-size:0.72rem;font-weight:500;margin:2px}}
 
 /* ── HISTORY ── */
 .h-dot{{width:9px;height:9px;border-radius:50%;flex-shrink:0}}
@@ -129,26 +425,77 @@ header[data-testid="stHeader"]{{background:transparent}}
 /* ── MISC ── */
 .stTabs [data-baseweb="tab"]{{font-size:0.86rem!important;font-weight:500!important}}
 .stTabs [data-baseweb="tab"][aria-selected="true"]{{color:{SAGE['mid']}!important}}
-div[data-testid="stMetric"]{{background:{SAGE['offwhite']};border-radius:12px;padding:1rem;border:1px solid {SAGE['pale']}}}
-[data-testid="stChatMessage"]{{border-radius:14px!important}}
+[data-testid="stChatMessage"]{{border-radius:16px!important}}
 
 /* ── DEMO CARDS ── */
-.demo-card{{background:{SAGE['offwhite']};border-radius:14px;padding:14px;border:1px solid {SAGE['pale']};cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(45,74,62,0.05)}}
-.demo-card:hover{{box-shadow:0 6px 22px rgba(74,124,111,0.16);transform:translateY(-2px)}}
+.demo-card{{background:rgba(16,29,46,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:18px;padding:16px;border:1px solid {SAGE['pale']};cursor:pointer;transition:box-shadow .22s ease,transform .22s ease;box-shadow:0 2px 10px rgba(0,0,0,0.22)}}
+.demo-card:hover{{box-shadow:0 10px 30px rgba(23,201,168,0.22);transform:translateY(-3px) scale(1.015)}}
 
 /* ── FEATURE CARDS ── */
-.feat-card{{background:{SAGE['offwhite']};border-radius:14px;padding:16px;border:1px solid {SAGE['pale']};box-shadow:0 2px 8px rgba(45,74,62,0.04)}}
+.feat-card{{background:rgba(16,29,46,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:18px;padding:18px;border:1px solid {SAGE['pale']};box-shadow:0 2px 10px rgba(0,0,0,0.18);transition:box-shadow .2s ease,transform .2s ease}}
+.feat-card:hover{{box-shadow:0 8px 22px rgba(0,0,0,0.3);transform:translateY(-2px)}}
 
 /* ── STAT CARDS ── */
-.stat-card{{background:{SAGE['offwhite']};border:1px solid {SAGE['pale']};border-radius:14px;padding:14px;text-align:center}}
+.stat-card{{background:rgba(16,29,46,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid {SAGE['pale']};border-radius:18px;padding:16px;text-align:center;transition:box-shadow .2s ease,transform .2s ease}}
+.stat-card:hover{{box-shadow:0 8px 22px rgba(0,0,0,0.3);transform:translateY(-2px)}}
+
+/* ── QUICK ACTION CARDS (Home) — modern app-launcher tiles: big illustration,
+   whole tile clickable, small secondary pill label pinned to the bottom ── */
+[class*="st-key-qa_"]{{
+  position:relative;border-radius:20px;background:rgba(16,29,46,0.65);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid {SAGE['pale']};box-shadow:0 4px 18px rgba(0,0,0,0.24);
+  transition:box-shadow .25s ease,transform .25s ease;overflow:hidden;
+  padding:1.2rem 1rem 1rem;display:flex;flex-direction:column;
+  align-items:center;min-height:230px;cursor:pointer;
+}}
+[class*="st-key-qa_"]:hover{{box-shadow:0 16px 38px rgba(47,181,134,0.28);transform:translateY(-5px) scale(1.02)}}
+[class*="st-key-qa_"] .stElementContainer:has(svg){{
+  flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;
+}}
+[class*="st-key-qa_"] .stElementContainer:has(svg) [data-testid="stMarkdownContainer"],
+[class*="st-key-qa_"] .stElementContainer:has(svg) .stMarkdown{{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+}}
+[class*="st-key-qa_"] svg{{width:100%;height:100%;max-height:100%}}
+.il-qa-pill{{
+  margin-top:auto;padding:0.5rem 1.3rem;border-radius:99px;
+  border:1px solid rgba(232,255,214,0.25);background:rgba(255,255,255,0.04);
+  color:{SAGE['stone']};font-weight:700;font-size:0.86rem;text-align:center;
+  white-space:nowrap;transition:border-color .25s ease,color .25s ease,background .25s ease;
+}}
+[class*="st-key-qa_"]:hover .il-qa-pill{{
+  border-color:{SAGE['mid']};color:{SAGE['charcoal']};background:rgba(47,181,134,0.12);
+}}
+/* Real button stretched invisibly over the whole tile — click anywhere triggers it */
+/* The button's own wrapper is position:relative by default, which would
+   trap the absolutely-positioned button inside its own (zero-height) box
+   instead of the full card — force it static so the button escapes upward. */
+[class*="st-key-qa_"] [class*="st-key-btn_"]{{position:static!important}}
+[class*="st-key-qa_"] .stButton{{position:absolute;inset:0;z-index:3}}
+[class*="st-key-qa_"] .stButton>button{{
+  width:100%;height:100%;background:transparent!important;border:none!important;
+  box-shadow:none!important;color:transparent!important;cursor:pointer;
+}}
+@media (max-width:640px){{
+  [class*="st-key-qa_"]{{min-height:170px;padding:0.9rem 0.7rem}}
+}}
 
 /* ── FOOTER ── */
 .ingrelens-footer{{
   background:linear-gradient(135deg,{SAGE['darkest']},{SAGE['dark']});
-  color:white;text-align:center;padding:1.2rem;border-radius:14px;
-  margin-top:2rem;font-size:0.82rem;opacity:0.92
+  color:white;text-align:center;padding:1.6rem 1.2rem;border-radius:20px;
+  margin-top:2rem;font-size:0.82rem;opacity:0.96;
+  box-shadow:0 10px 32px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);
 }}
 .ingrelens-footer a{{color:{SAGE['light']};text-decoration:none}}
+
+/* ── RESPONSIVE ── */
+@media (max-width:768px){{
+  .main .block-container{{padding:1.1rem 1rem 2.5rem}}
+  .il-hero{{padding:1.7rem 1.5rem;border-radius:18px}}
+  .il-hero h1{{font-size:1.5rem}}
+}}
 
 </style>
 """
@@ -187,72 +534,165 @@ def render_auth_bar():
             prefs.get("gender"), prefs.get("age"), prefs.get("height_cm"), prefs.get("weight_kg")
         )
 
-    c1, c2 = st.columns([5, 2])
-    with c1:
-        if targets:
-            st.markdown(
-                f'<div style="font-size:0.78rem;color:{SAGE["stone"]};padding-top:8px">'
-                f'🎯 Daily Target: <b style="color:{SAGE["mid"]}">{targets["daily_calories"]} kcal</b></div>',
-                unsafe_allow_html=True,
-            )
-    with c2:
-        auth = st.session_state.get("auth_user")
-        if auth:
-            ac1, ac2 = st.columns([2, 1])
-            with ac1:
+    authbar = st.container(key="il_authbar")
+    with authbar:
+        c1, c2 = st.columns([5, 2])
+        with c1:
+            if targets:
                 st.markdown(
-                    f'<div style="text-align:right;font-weight:600;padding-top:6px;color:{SAGE["charcoal"]}">'
-                    f'Hi, {auth["name"] or auth["email"]}</div>',
+                    f'<div class="il-daily-target">🎯 Daily Target&nbsp; '
+                    f'<b>{targets["daily_calories"]} kcal</b></div>',
                     unsafe_allow_html=True,
                 )
-            with ac2:
-                if st.button("Logout", key="btn_logout_header", use_container_width=True):
-                    do_logout()
-                    st.rerun()
-        else:
-            with st.popover("🔐 Login", use_container_width=True):
-                tab_in, tab_up = st.tabs(["Sign In", "Sign Up"])
-                with tab_in:
-                    email = st.text_input("Email", key="login_email")
-                    pw = st.text_input("Password", type="password", key="login_pw")
-                    if st.button("Sign In", key="btn_signin", type="primary", use_container_width=True):
-                        user = db.authenticate(email, pw)
-                        if user:
-                            do_login(user)
+        with c2:
+            auth = st.session_state.get("auth_user")
+            if auth:
+                with st.container(key="il_user_badge"):
+                    ac1, ac2 = st.columns([2, 1])
+                    with ac1:
+                        st.markdown(
+                            f'<div class="il-user-pill">👤&nbsp; Hi, {auth["name"] or auth["email"]}</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with ac2:
+                        if st.button("Logout", key="btn_logout_header", use_container_width=True):
+                            do_logout()
                             st.rerun()
-                        else:
-                            st.error("Invalid email or password.")
-                    st.caption("Demo: test123@gmail.com / test123")
-                with tab_up:
-                    name = st.text_input("Name", key="signup_name")
-                    email2 = st.text_input("Email", key="signup_email")
-                    pw2 = st.text_input("Password", type="password", key="signup_pw")
-                    if st.button("Sign Up", key="btn_signup", type="primary", use_container_width=True):
-                        if not (name and email2 and pw2):
-                            st.error("All fields are required.")
-                        else:
-                            uid = db.create_account(name, email2, pw2)
-                            if uid:
-                                do_login(db.get_user_by_email(email2))
-                                st.rerun()
-                            else:
-                                st.error("That email is already registered.")
+            else:
+                with st.container(key="il_login_btn"):
+                    with st.popover("👤  Login", use_container_width=True):
+                        tab_in, tab_up = st.tabs(["Sign In", "Sign Up"])
+                        with tab_in:
+                            email = st.text_input("Email", key="login_email")
+                            pw = st.text_input("Password", type="password", key="login_pw")
+                            if st.button("Sign In", key="btn_signin", type="primary", use_container_width=True):
+                                user = db.authenticate(email, pw)
+                                if user:
+                                    do_login(user)
+                                    st.rerun()
+                                else:
+                                    st.error("Invalid email or password.")
+                            st.caption("Demo: test123@gmail.com / test123")
+                        with tab_up:
+                            name = st.text_input("Name", key="signup_name")
+                            email2 = st.text_input("Email", key="signup_email")
+                            pw2 = st.text_input("Password", type="password", key="signup_pw")
+                            if st.button("Sign Up", key="btn_signup", type="primary", use_container_width=True):
+                                if not (name and email2 and pw2):
+                                    st.error("All fields are required.")
+                                else:
+                                    uid = db.create_account(name, email2, pw2)
+                                    if uid:
+                                        do_login(db.get_user_by_email(email2))
+                                        st.rerun()
+                                    else:
+                                        st.error("That email is already registered.")
 
 
-def render_page_header(page_icon: str, page_title: str, page_subtitle: str = ""):
+def render_scan_scene() -> str:
+    """Stickman-with-magnifying-glass scanning a food label — cinematic entrance
+    visual for the Home hero. Pure inline SVG + CSS keyframes (no JS/Lottie
+    dependency), staged to play once on hero load: figure enters → glass arm
+    swings up → scan-beam sweeps the barcode → data motes rise → AI result
+    chips pop in → whole scene settles into a slow idle float."""
+    return f'''<div class="il-scan-scene"><svg viewBox="0 0 460 420">
+  <g class="il-scan-actor">
+    <rect x="40" y="120" width="150" height="220" rx="10" fill="{SAGE['offwhite']}" stroke="{SAGE['pale']}" stroke-width="2"/>
+    <path d="M115 120 C105 100 125 88 130 70 C142 92 140 115 115 120 Z" fill="{SAGE['mid']}" opacity="0.9"/>
+    <g fill="{SAGE['stone']}" opacity="0.5">
+      <rect x="58" y="150" width="70" height="7" rx="2"/>
+      <rect x="58" y="165" width="54" height="5" rx="2"/>
+      <rect x="58" y="176" width="60" height="5" rx="2"/>
+      <rect x="58" y="187" width="46" height="5" rx="2"/>
+      <rect x="58" y="198" width="58" height="5" rx="2"/>
+    </g>
+    <g fill="{SAGE['stone']}" opacity="0.7">
+      <rect x="58" y="270" width="4" height="46"/><rect x="66" y="270" width="2" height="46"/>
+      <rect x="72" y="270" width="7" height="46"/><rect x="83" y="270" width="2" height="46"/>
+      <rect x="89" y="270" width="4" height="46"/><rect x="97" y="270" width="3" height="46"/>
+      <rect x="105" y="270" width="7" height="46"/><rect x="116" y="270" width="2" height="46"/>
+      <rect x="122" y="270" width="4" height="46"/><rect x="130" y="270" width="2" height="46"/>
+      <rect x="136" y="270" width="7" height="46"/><rect x="147" y="270" width="3" height="46"/>
+      <rect x="155" y="270" width="2" height="46"/>
+    </g>
+    <line class="il-scan-beam" x1="50" y1="270" x2="180" y2="270"/>
+    <circle class="il-scan-mote" cx="68" cy="266" r="3.2"/>
+    <circle class="il-scan-mote" cx="90" cy="266" r="2.6"/>
+    <circle class="il-scan-mote" cx="112" cy="266" r="3.6"/>
+    <circle class="il-scan-mote" cx="130" cy="266" r="2.8"/>
+    <circle class="il-scan-mote" cx="146" cy="266" r="3.2"/>
+    <circle class="il-scan-mote" cx="100" cy="266" r="2.4"/>
+    <circle cx="270" cy="120" r="22" fill="none" stroke="{SAGE['stone']}" stroke-width="6"/>
+    <g stroke="{SAGE['stone']}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="270" y1="142" x2="270" y2="235"/>
+      <line x1="270" y1="235" x2="242" y2="315"/>
+      <line x1="270" y1="235" x2="300" y2="315"/>
+      <line x1="270" y1="170" x2="236" y2="210"/>
+    </g>
+    <g class="il-scan-arm">
+      <line x1="270" y1="170" x2="128" y2="230" stroke="{SAGE['stone']}" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <line x1="128" y1="230" x2="112" y2="246" stroke="{SAGE['accent']}" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="90" cy="268" r="26" fill="none" stroke="{SAGE['accent']}" stroke-width="6"/>
+    </g>
+    <g transform="translate(250,40)"><g class="il-scan-chip" style="--d:3.4s">
+      <rect width="112" height="32" rx="16"/><text x="56" y="20" text-anchor="middle">VEGETARIAN</text>
+    </g></g>
+    <g transform="translate(300,110)"><g class="il-scan-chip" style="--d:3.65s">
+      <rect width="76" height="32" rx="16"/><text x="38" y="20" text-anchor="middle">95% AI</text>
+    </g></g>
+    <g transform="translate(250,180)"><g class="il-scan-chip" style="--d:3.9s">
+      <rect width="126" height="32" rx="16"/><text x="63" y="20" text-anchor="middle">LOW SODIUM</text>
+    </g></g>
+  </g>
+</svg></div>'''
+
+
+def render_home_hero():
+    """Premium animated hero — Home page only. Same logo/palette, no new
+    functionality; purely a visual entrance point for the app."""
+    b64 = get_logo_b64("header")
+    logo_img = (
+        f'<div class="il-mega-logo-wrap"><div class="il-mega-logo-glow"></div>'
+        f'<div class="il-mega-logo-glass"><img src="data:image/png;base64,{b64}" '
+        f'alt="IngreLens AI"></div></div>'
+        if b64 else '<div style="font-size:4rem">🏠</div>'
+    )
+    st.markdown(
+        f'''<div class="il-mega-hero">
+  <div class="il-mega-shape s1"></div>
+  <div class="il-mega-shape s2"></div>
+  <div class="il-mega-shape s3"></div>
+  <div class="il-mega-content">
+    <div class="il-mega-badge">AI Ingredient Intelligence</div>
+    {render_scan_scene()}
+    {logo_img}
+    <div class="il-mega-title">IngreLens <span>AI</span></div>
+    <div class="il-mega-tagline">Scan. <span>Analyze.</span> &amp; Eat Smarter.</div>
+    <div class="il-mega-subtitle">Smart ingredient intelligence, simplified. Scan with our Deep AI
+      Analyzer, decode the data, and eat with confidence.</div>
+  </div>
+</div>''',
+        unsafe_allow_html=True,
+    )
+
+
+def render_page_header(page_icon: str, page_title: str, page_subtitle: str = "", mega: bool = False):
     """
     Shared global header used on every page.
     Shows: larger logo + IngreLens AI branding + page title + subtitle.
     Call this at the top of every page instead of duplicating hero HTML.
+    mega=True (Home only) swaps in the full premium animated hero.
     """
     render_auth_bar()
     render_floating_assistant()
+    if mega:
+        render_home_hero()
+        return
     b64 = get_logo_b64("header")
     logo_img = (
-        f'<img src="data:image/png;base64,{b64}" '
-        f'style="width:160px;border-radius:14px;'
-        f'box-shadow:0 4px 20px rgba(0,0,0,0.22);'
-        f'margin-bottom:10px" alt="IngreLens AI">'
+        f'<div class="il-logo-wrap" style="margin-bottom:10px"><div class="il-logo-glow"></div>'
+        f'<div class="il-logo-glass"><img src="data:image/png;base64,{b64}" '
+        f'style="width:140px" alt="IngreLens AI"></div></div>'
         if b64 else
         f'<div style="font-size:3rem">{page_icon}</div>'
     )
@@ -278,7 +718,7 @@ def render_page_header(page_icon: str, page_title: str, page_subtitle: str = "")
     <div style="flex:1;min-width:200px">
       <div style="font-size:1.55rem;font-weight:800;color:white;
                   letter-spacing:-0.01em;margin-bottom:3px">
-        {page_icon} {page_title}
+        {(page_icon + ' ') if page_icon else ''}{page_title}
       </div>
       {subtitle_html}
     </div>
@@ -304,11 +744,11 @@ def render_logo_sidebar():
     b64 = get_logo_b64("sidebar")
     if b64:
         st.markdown(
-            f'<div style="text-align:center;padding:10px 8px 4px">' 
-            f'<img src="data:image/png;base64,{b64}" ' 
-            f'style="width:150px;max-width:90%;border-radius:14px;' 
-            f'border:1px solid rgba(255,255,255,0.2);display:inline-block"' 
-            f' alt="IngreLens AI"></div>',
+            f'<div style="text-align:center;padding:14px 8px 6px">'
+            f'<div class="il-logo-wrap"><div class="il-logo-glow"></div>'
+            f'<div class="il-logo-glass">'
+            f'<img src="data:image/png;base64,{b64}" style="width:130px;max-width:80vw" alt="IngreLens AI">'
+            f'</div></div></div>',
             unsafe_allow_html=True,
         )
     else:
@@ -339,68 +779,68 @@ def render_sidebar():
         st.page_link("app.py", label="IngreLens AI", icon="🏠")
         st.page_link("pages/1_📷_Scanner.py", label="Scanner", icon="📷")
         st.page_link("pages/2_🔍_Analyzer.py", label="Analyzer", icon="🔍")
+        st.page_link("pages/3_🔢_Barcode_Lookup.py", label="Barcode Lookup", icon="🔢")
         st.page_link("pages/4_⚖️_Comparison.py", label="Comparison", icon="⚖️")
         st.page_link("pages/5_👤_Preferences.py", label="Preferences", icon="👤")
         st.page_link("pages/6_📚_History.py", label="History", icon="📚")
+        st.page_link("pages/7_ℹ️_About.py", label="About IngreLens App", icon="ℹ️")
 
-        # ── Active Agents ─────────────────────────────────────────────────────
-        st.markdown(
-            '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.18);margin:10px 0 10px">'
-            '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;'
-            'text-transform:uppercase;opacity:0.5;margin-bottom:8px;color:white">Active Agents</div>',
-            unsafe_allow_html=True,
-        )
-        agents = [
-            ("🔍", "Product Agent"),
-            ("🧬", "Analysis Agent"),
-            ("🏷️", "Classifier"),
-            ("📊", "Nutrition Agent"),
-            ("🤖", "AI Analyst"),
-        ]
-        for icon, name in agents:
-            st.markdown(
-                f'<div style="display:flex;align-items:center;gap:8px;'
-                f'padding:4px 10px;margin-bottom:2px">'
-                f'<div style="width:7px;height:7px;background:#6aab9b;'
-                f'border-radius:50%;flex-shrink:0"></div>'
-                f'<span style="font-size:0.82rem;color:rgba(255,255,255,0.85)">'
-                f'{icon} {name}</span></div>',
-                unsafe_allow_html=True,
-            )
 
-        # ── Recent Scans ──────────────────────────────────────────────────────
-        st.markdown(
-            '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.18);margin:10px 0 10px">'
-            '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;'
-            'text-transform:uppercase;opacity:0.5;margin-bottom:8px;color:white">Recent Scans</div>',
-            unsafe_allow_html=True,
-        )
-        history = st.session_state.get("history", [])
-        if history:
-            for item in history[:5]:
-                dot_color = {"Vegan": "#6aab9b", "Not Vegan": "#d4675a", "Uncertain": "#d4b45a"}.get(item["verdict"], "#8da8a1")
-                verdict_color_text = {"Vegan": "#6aab9b", "Not Vegan": "#d4675a", "Uncertain": "#d4b45a"}.get(item["verdict"], "#8da8a1")
-                st.markdown(
-                    f'<div style="display:flex;align-items:center;gap:8px;'
-                    f'padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.08);'
-                    f'margin-bottom:2px">'
-                    f'<div style="width:8px;height:8px;background:{dot_color};'
-                    f'border-radius:50%;flex-shrink:0"></div>'
-                    f'<div style="flex:1;min-width:0">'
-                    f'<div style="font-size:0.82rem;font-weight:600;color:white;'
-                    f'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-                    f'{item["product"]}</div>'
-                    f'<div style="font-size:0.68rem;color:{verdict_color_text}">'
-                    f'{item["verdict"]}</div>'
-                    f'</div></div>',
-                    unsafe_allow_html=True,
-                )
-        else:
-            st.markdown(
-                '<div style="padding:4px 10px;font-size:0.78rem;'
-                'color:rgba(255,255,255,0.45)">No scans yet</div>',
-                unsafe_allow_html=True,
-            )
+_NAV_CENTER = [
+    ("app.py", "Home", "🏠"),
+    ("pages/1_📷_Scanner.py", "Scanner", "📷"),
+    ("pages/2_🔍_Analyzer.py", "Search Product", "🔍"),
+    ("pages/3_🔢_Barcode_Lookup.py", "Barcode Lookup", "🔢"),
+    ("pages/4_⚖️_Comparison.py", "Compare Products", "⚖️"),
+]
+_NAV_RIGHT = [
+    ("pages/5_👤_Preferences.py", "Preferences", "👤"),
+    ("pages/6_📚_History.py", "History", "📚"),
+    ("pages/7_ℹ️_About.py", "About", "ℹ️"),
+]
+
+
+def render_top_nav():
+    """Responsive top navigation bar — replaces the left sidebar.
+    Uses the same st.page_link widgets as before (routing/logic untouched),
+    just laid out horizontally. Collapses into a hamburger toggle under 900px."""
+    if "show_mobile_nav" not in st.session_state:
+        st.session_state.show_mobile_nav = False
+
+    b64 = get_logo_b64("sidebar")
+    logo_html = (
+        f'<div class="il-topnav-brand"><div class="il-logo-wrap" style="display:inline-block;vertical-align:middle">'
+        f'<div class="il-logo-glow" style="inset:-8px"></div>'
+        f'<div class="il-logo-glass"><img src="data:image/png;base64,{b64}" '
+        f'style="width:32px;vertical-align:middle" alt="IngreLens AI"></div></div>'
+        f'<span class="il-topnav-word">IngreLens <b>AI</b></span></div>'
+        if b64 else '<span class="il-topnav-word">IngreLens <b>AI</b></span>'
+    )
+
+    with st.container(key="il_topnav"):
+        col_logo, col_links, col_toggle = st.columns([1.3, 9.8, 0.3])
+        with col_logo:
+            st.markdown(logo_html, unsafe_allow_html=True)
+        with col_links:
+            with st.container(key="il_topnav_links"):
+                items = _NAV_CENTER + _NAV_RIGHT
+                # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
+                # No icons here (desktop pills) — every pixel goes to the label text.
+                _nav_ratios = [0.9, 1.1, 1.65, 1.65, 1.8, 1.35, 1.05, 0.9]
+                sub_cols = st.columns(_nav_ratios, gap="small")
+                for i, (target, label, icon) in enumerate(items):
+                    with sub_cols[i]:
+                        st.page_link(target, label=label)
+        with col_toggle:
+            with st.container(key="il_topnav_toggle"):
+                if st.button("☰", key="mobile_nav_toggle_btn"):
+                    st.session_state.show_mobile_nav = not st.session_state.show_mobile_nav
+
+    if st.session_state.show_mobile_nav:
+        with st.container(key="il_mobile_nav_panel"):
+            for target, label, icon in _NAV_CENTER + _NAV_RIGHT:
+                st.page_link(target, label=label, icon=icon)
+
 
 def _ensure_db_ready():
     """Create ingrelens.db and its tables if missing.
@@ -426,6 +866,30 @@ def init_state():
     # preferences/history don't need reconfiguring, even before signing in.
     if "user_id" not in st.session_state:
         _activate_user(db.get_or_create_local_user())
+
+
+# Transient per-page working state — cleared whenever the user actually
+# navigates to a different page (not on same-page reruns), so every page
+# always opens clean. History/preferences/auth are never touched.
+_CLEARABLE_PAGE_KEYS = [
+    # Scanner
+    "ocr_extracted", "ocr_result", "ocr_result_name", "ocr_prod_name_saved",
+    "ocr_image_hash", "barcode_result", "barcode_prod", "cam_detected_bc",
+    "scan_mode_radio",
+    # Barcode Lookup / Paste Ingredients
+    "selected_barcode", "paste_result", "paste_result_name", "paste_text", "paste_name",
+    # Analyzer / Search
+    "ar", "ap", "analyzer_pending_query", "analyzer_products",
+    "analyzer_suggestions", "analyzer_query", "analyzer_suggest_pick",
+]
+
+
+def enter_page(page_key: str):
+    """Call once near the top of every page, right after render_sidebar()."""
+    if st.session_state.get("_current_page") != page_key:
+        for k in _CLEARABLE_PAGE_KEYS:
+            st.session_state.pop(k, None)
+        st.session_state["_current_page"] = page_key
 
 
 def _activate_user(user_id: str):
@@ -585,7 +1049,7 @@ def verdict_emoji(v):
     return {"Vegan":"✅","Not Vegan":"❌","Uncertain":"⚠️"}.get(v,"❓")
 
 def verdict_color(v):
-    return {"Vegan": SAGE["mid"], "Not Vegan": "#b84a3a", "Uncertain": "#c4962a"}.get(v, SAGE["stone"])
+    return {"Vegan": SAGE["mid"], "Not Vegan": "#e5584a", "Uncertain": "#e0ab3a"}.get(v, SAGE["stone"])
 
 # ── UI renderers ───────────────────────────────────────────────────────────────
 def render_verdict_card(result):
@@ -600,7 +1064,7 @@ def render_verdict_card(result):
         f'<div class="verdict-title" style="color:{col}">{v.upper()}</div>'
         f'<div class="verdict-sub">{result.reasoning}</div>'
         f'<div style="margin-top:0.7rem">'
-        f'<div style="font-size:0.74rem;color:#4a5c55;font-weight:500">Confidence: {conf}%</div>'
+        f'<div style="font-size:0.74rem;color:#a9bdd2;font-weight:500">Confidence: {conf}%</div>'
         f'<div class="conf-bar-bg"><div class="conf-bar" style="width:{conf}%;background:{col}"></div></div>'
         f'</div></div>',
         unsafe_allow_html=True,
@@ -613,7 +1077,7 @@ def render_metrics(result):
     al  = len(result.allergens_detected)
     hs  = result.health_score
     tot = len(result.ingredient_results)
-    hc  = SAGE["mid"] if hs >= 70 else "#c4962a" if hs >= 45 else "#b84a3a"
+    hc  = SAGE["mid"] if hs >= 70 else "#e0ab3a" if hs >= 45 else "#e5584a"
     st.markdown(
         f'<div class="metric-row">'
         f'<div class="metric-card"><div class="metric-icon">{verdict_emoji(v)}</div>'
@@ -622,7 +1086,7 @@ def render_metrics(result):
         f'<div class="metric-card"><div class="metric-icon">🧪</div>'
         f'<div class="metric-num">{tot}</div><div class="metric-lbl">Ingredients</div></div>'
         f'<div class="metric-card"><div class="metric-icon">⚠️</div>'
-        f'<div class="metric-num" style="color:{"#b84a3a" if al > 0 else SAGE["mid"]}">{al}</div>'
+        f'<div class="metric-num" style="color:{"#e5584a" if al > 0 else SAGE["mid"]}">{al}</div>'
         f'<div class="metric-lbl">Allergens</div></div>'
         f'<div class="metric-card"><div class="metric-icon">🏥</div>'
         f'<div class="metric-num" style="color:{hc}">{hs}</div>'
@@ -632,7 +1096,7 @@ def render_metrics(result):
     )
 
 def render_health_score(score):
-    c = SAGE["mid"] if score >= 70 else "#c4962a" if score >= 45 else "#b84a3a"
+    c = SAGE["mid"] if score >= 70 else "#e0ab3a" if score >= 45 else "#e5584a"
     l = "Excellent" if score >= 85 else "Good" if score >= 70 else "Moderate" if score >= 50 else "Poor"
     st.markdown(
         f'<div class="health-wrap">'
@@ -651,7 +1115,7 @@ def render_nutriscore(ns):
     ns = ns.upper()
     if ns not in "ABCDE":
         return
-    bg  = {"A": "#1a6b4a", "B": "#5a9a30", "C": "#c8a020", "D": "#c87820", "E": "#b84a3a"}
+    bg  = {"A": "#1a6b4a", "B": "#5a9a30", "C": "#c8a020", "D": "#c87820", "E": "#e5584a"}
     tc  = {"A": "white",   "B": "white",   "C": "#4a3800", "D": "white",   "E": "white"}
     cols = st.columns(5)
     for i, L in enumerate(["A", "B", "C", "D", "E"]):
@@ -664,9 +1128,9 @@ def render_nutriscore(ns):
                 unsafe_allow_html=True,
             )
 
-def render_nutrition_pie(nutriments: dict, key_suffix: str = ""):
+def render_nutrition_pie(nutriments: dict, key_suffix: str = "", large: bool = False):
     """Responsive pie of the 6 tracked macros — st.columns already stacks
-    this beside the nutrition table on desktop and below it on mobile."""
+    this beside the classification card on desktop and below it on mobile."""
     # Validated categorical palette (dataviz skill, palette.md slots 1-6) —
     # fixed hue order, never reassigned by rank, passes CVD/lightness/chroma checks.
     fields = [
@@ -690,10 +1154,11 @@ def render_nutrition_pie(nutriments: dict, key_suffix: str = ""):
         import plotly.express as px
         fig = px.pie(names=labels, values=values, hole=0.45,
                      color=labels, color_discrete_sequence=colors)
-        fig.update_traces(textposition="inside", textinfo="percent+label", showlegend=True)
-        fig.update_layout(height=230, margin=dict(t=10, b=0, l=0, r=0),
+        fig.update_traces(textposition="inside", textinfo="percent+label", showlegend=True,
+                           textfont_size=15 if large else 11)
+        fig.update_layout(height=420 if large else 230, margin=dict(t=10, b=0, l=0, r=0),
                            paper_bgcolor="rgba(0,0,0,0)",
-                           legend=dict(font=dict(size=10)))
+                           legend=dict(font=dict(size=13 if large else 10)))
         chart_key = f"nutrition_pie_{key_suffix}_{'_'.join(labels)}"[:150]
         st.plotly_chart(fig, use_container_width=True, key=chart_key)
     except ImportError:
@@ -803,15 +1268,15 @@ def render_floating_assistant():
         .st-key-ai_fab_btn .stButton>button {
             width: 58px; height: 58px; border-radius: 50% !important;
             font-size: 1.5rem !important; padding: 0 !important;
-            box-shadow: 0 6px 22px rgba(45,74,62,0.4) !important;
-            transition: transform .18s ease !important;
+            box-shadow: 0 6px 22px rgba(23,201,168,0.4) !important;
+            transition: transform .22s ease !important;
         }
         .st-key-ai_fab_btn .stButton>button:hover { transform: scale(1.08) translateY(-2px) !important; }
         .st-key-ai_panel {
             position: fixed; bottom: 92px; right: 24px; z-index: 9999;
             width: 350px; max-width: 88vw; max-height: 60vh; overflow-y: auto;
-            background: var(--background-color, white); border-radius: 16px;
-            box-shadow: 0 14px 44px rgba(0,0,0,0.28); border: 1px solid #e2edeb;
+            background: var(--background-color, #101d2e); border-radius: 16px;
+            box-shadow: 0 14px 44px rgba(0,0,0,0.45); border: 1px solid rgba(102,214,235,0.18);
             padding: 12px 14px 6px; animation: ilSlideUp .28s cubic-bezier(.2,.9,.3,1);
         }
         @keyframes ilSlideUp {
@@ -957,11 +1422,11 @@ def render_dietary_alerts(result):
 
     conflicts = list(dict.fromkeys(conflicts))
     if conflicts:
-        items = "".join(f'<div style="font-size:0.86rem;color:#6b2a1e;margin:3px 0">• {c}</div>' for c in conflicts)
+        items = "".join(f'<div style="font-size:0.86rem;color:#ff9686;margin:3px 0">• {c}</div>' for c in conflicts)
         st.markdown(
-            f'<div style="background:#fde8e5;border-left:5px solid #b84a3a;border-radius:12px;'
+            f'<div style="background:rgba(229,88,74,0.14);border-left:5px solid #e5584a;border-radius:12px;'
             f'padding:1rem 1.2rem;margin-bottom:1rem">'
-            f'<div style="font-weight:700;color:#8b2a1e;margin-bottom:6px">🚨 Dietary Conflict Alert</div>'
+            f'<div style="font-weight:700;color:#ff9686;margin-bottom:6px">🚨 Dietary Conflict Alert</div>'
             f'{items}</div>',
             unsafe_allow_html=True,
         )
@@ -969,7 +1434,35 @@ def render_dietary_alerts(result):
 
 def full_analysis_display(result, product=None, key_suffix="main"):
     render_dietary_alerts(result)
-    render_verdict_card(result)
+
+    nm = (product or {}).get("nutriments", {}) or {}
+    has_nutrition = any(nm.values())
+
+    if has_nutrition:
+        # Classification card + Nutrition Pie Chart — 50/50 on desktop,
+        # stacked on mobile (st.columns' default responsive behavior).
+        cls_col, chart_col = st.columns([1, 1])
+        with cls_col:
+            render_verdict_card(result)
+        with chart_col:
+            render_nutrition_pie(nm, key_suffix=key_suffix, large=True)
+
+        st.markdown('<div class="shdr">Nutrition / 100g</div>', unsafe_allow_html=True)
+        def fmt(v, u="g"):
+            return f"{float(v):.1f} {u}" if v is not None else "—"
+        nut_fields = [
+            ("🔥 Energy","energy","kcal"), ("🫀 Fat","fat","g"),
+            ("🍬 Sugars","sugars","g"),    ("💪 Protein","protein","g"),
+            ("🧂 Salt","salt","g"),         ("🌾 Fiber","fiber","g"),
+        ]
+        nut_cols = st.columns(len(nut_fields))
+        for col, (lbl, key, unit) in zip(nut_cols, nut_fields):
+            with col:
+                st.caption(lbl)
+                st.markdown(f"**{fmt(nm.get(key), unit)}**")
+    else:
+        render_verdict_card(result)
+
     render_agent_row()
     render_metrics(result)
 
@@ -1012,24 +1505,6 @@ def full_analysis_display(result, product=None, key_suffix="main"):
             if product.get("nutriscore"):
                 st.markdown('<div class="shdr">Nutri-Score</div>', unsafe_allow_html=True)
                 render_nutriscore(product["nutriscore"])
-
-            nm = product.get("nutriments", {}) or {}
-            if any(nm.values()):
-                nut_tbl_col, nut_chart_col = st.columns([1, 1])
-                with nut_tbl_col:
-                    st.markdown('<div class="shdr">Nutrition / 100g</div>', unsafe_allow_html=True)
-                    def fmt(v, u="g"):
-                        return f"{float(v):.1f} {u}" if v is not None else "—"
-                    for lbl, key, unit in [
-                        ("🔥 Energy","energy","kcal"), ("🫀 Fat","fat","g"),
-                        ("🍬 Sugars","sugars","g"),    ("💪 Protein","protein","g"),
-                        ("🧂 Salt","salt","g"),         ("🌾 Fiber","fiber","g"),
-                    ]:
-                        ca, cb = st.columns([3, 2])
-                        ca.caption(lbl)
-                        cb.markdown(f"**{fmt(nm.get(key), unit)}**")
-                with nut_chart_col:
-                    render_nutrition_pie(nm, key_suffix=key_suffix)
 
             if product.get("allergens"):
                 st.markdown('<div class="shdr">Package Allergen Warnings</div>', unsafe_allow_html=True)
