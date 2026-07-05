@@ -29,7 +29,11 @@ BRAND_CSS = f"""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 html,body,[class*="css"]{{font-family:'Inter',sans-serif!important}}
 #MainMenu,footer,.stDeployButton{{display:none!important}}
-header[data-testid="stHeader"]{{background:transparent}}
+/* Native Streamlit header reserves height at the very top of the viewport
+   even fully transparent — collapse it so the custom nav below sits flush
+   at the top with no gap above it. */
+header[data-testid="stHeader"]{{background:transparent;height:0;min-height:0}}
+header[data-testid="stHeader"] *{{display:none!important}}
 .main .block-container{{padding:1.75rem 2.25rem 3.5rem;max-width:1240px}}
 
 /* ── ANIMATIONS ── */
@@ -114,6 +118,10 @@ header[data-testid="stHeader"]{{background:transparent}}
   border-color:#e5584a!important;box-shadow:0 2px 12px rgba(229,88,74,0.35)!important;
 }}
 .il-daily-target-warn b{{color:#ff9686!important}}
+/* Logged-in status strip, directly under the main nav */
+.st-key-il_status_panel{{
+  display:flex;gap:12px;margin:-0.5rem -0.25rem 1rem;padding:8px 18px;
+}}
 
 /* ── PREMIUM LOGIN / ACCOUNT (inline in the main nav row, far right) ── */
 .st-key-il_login_btn{{display:flex;justify-content:flex-end}}
@@ -131,13 +139,6 @@ header[data-testid="stHeader"]{{background:transparent}}
 .st-key-il_login_btn .stButton>button:hover{{
   box-shadow:0 10px 26px rgba(47,181,134,0.4),inset 0 1px 0 rgba(255,255,255,0.2)!important;
   transform:translateY(-2px) scale(1.03)!important;
-}}
-.il-user-pill{{
-  display:inline-flex;align-items:center;gap:6px;font-weight:700;
-  color:{SAGE['charcoal']};background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(102,214,235,0.1));
-  border:1px solid {SAGE['light']};border-radius:99px;padding:8px 18px;
-  box-shadow:0 3px 12px rgba(0,0,0,0.22);backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);white-space:nowrap;margin-bottom:8px;
 }}
 
 /* ── HERO ── */
@@ -562,14 +563,38 @@ def _render_login_popover():
                         st.error("That email is already registered.")
 
 
+def render_status_panel():
+    """Compact status strip directly under the main nav — Daily Target +
+    Remaining Calories, shown only when logged in. Uses the exact same
+    _get_daily_target()/db.get_daily_consumption() values Food Logs uses,
+    so the two stay in sync automatically (same source of truth, not a
+    separate computation)."""
+    if not st.session_state.get("auth_user"):
+        return
+    user_id = st.session_state.get("user_id", "")
+    targets = _get_daily_target(user_id)
+    daily = db.get_daily_consumption(user_id)
+    remaining = max(targets["daily_calories"] - daily["calories"], 0)
+    warn_class = " il-daily-target-warn" if remaining <= 0 else ""
+    with st.container(key="il_status_panel"):
+        st.markdown(
+            f'<div class="il-daily-target">🎯 Daily Target&nbsp; <b>{targets["daily_calories"]} kcal</b></div>'
+            f'<div class="il-daily-target{warn_class}">🔥 Remaining&nbsp; <b>{remaining:.0f} kcal</b></div>',
+            unsafe_allow_html=True,
+        )
+
+
 def render_nav_auth_control():
     """Inline auth control that sits in the main nav row (far right, after
     About) — no separate status bar above the nav, so there's no reserved
     empty space when logged out.
-    Logged out: the existing Login popover (Sign In / Sign Up).
-    Logged in: a same-sized popover button showing the user's name, which
-    opens to reveal Daily Target + Hi [name] + Logout — same compact,
-    single-slot footprint as Login, just swapped for the authenticated state."""
+    Logged out: the existing Login popover (Sign In / Sign Up) — the
+    separate Profile dropdown (Profile/Food Logs/History) still shows in
+    its usual nav position for anonymous users.
+    Logged in: a same-sized popover button reading "Hi, [name]" (the
+    username appears once, on the button itself — nothing repeats it
+    inside), whose dropdown merges what used to be two separate menus:
+    Profile, Food Logs, History, and Logout."""
     auth = st.session_state.get("auth_user")
 
     with st.container(key="il_login_btn"):
@@ -578,26 +603,9 @@ def render_nav_auth_control():
             return
 
         display_name = auth["name"] or auth["email"]
-        with st.popover(f"👤  {display_name}", use_container_width=True):
-            prefs = db.get_user_preferences(st.session_state.get("user_id", ""))
-            targets = None
-            if prefs:
-                targets = db.compute_bmi_and_targets(
-                    prefs.get("gender"), prefs.get("age"), prefs.get("height_cm"), prefs.get("weight_kg")
-                )
-            if targets:
-                daily = db.get_daily_consumption(st.session_state.get("user_id", ""))
-                remaining = targets["daily_calories"] - daily["calories"]
-                warn_class = " il-daily-target-warn" if remaining <= 0 else ""
-                st.markdown(
-                    f'<div class="il-daily-target{warn_class}">🎯 Daily Target&nbsp; '
-                    f'<b>{targets["daily_calories"]} kcal</b></div>',
-                    unsafe_allow_html=True,
-                )
-            st.markdown(
-                f'<div class="il-user-pill">👤&nbsp; Hi, {display_name}</div>',
-                unsafe_allow_html=True,
-            )
+        with st.popover(f"Hi, {display_name}", use_container_width=True):
+            for target, label, icon in _PROFILE_DROPDOWN:
+                st.page_link(target, label=label, icon=icon)
             if st.button("Logout", key="btn_logout_header", type="primary", use_container_width=True):
                 do_logout()
                 st.rerun()
@@ -849,16 +857,26 @@ def render_top_nav():
             with st.container(key="il_topnav_links"):
                 # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
                 # No icons here (desktop pills) — every pixel goes to the label text.
-                _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 1.05, 0.9]
+                # Logged in: the Profile dropdown (Profile/Food Logs/History) moves
+                # into the account control on the far right, merged with Logout —
+                # one menu instead of two. Logged out: unchanged, shown here.
+                logged_in = bool(st.session_state.get("auth_user"))
+                if logged_in:
+                    _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 0.9]
+                else:
+                    _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 1.05, 0.9]
                 sub_cols = st.columns(_nav_ratios, gap="small")
                 for i, (target, label, icon) in enumerate(_NAV_CENTER):
                     with sub_cols[i]:
                         st.page_link(target, label=label)
-                with sub_cols[len(_NAV_CENTER)]:
-                    with st.popover("Profile", use_container_width=True):
-                        for target, label, icon in _PROFILE_DROPDOWN:
-                            st.page_link(target, label=label, icon=icon)
-                with sub_cols[len(_NAV_CENTER) + 1]:
+                next_slot = len(_NAV_CENTER)
+                if not logged_in:
+                    with sub_cols[next_slot]:
+                        with st.popover("Profile", use_container_width=True):
+                            for target, label, icon in _PROFILE_DROPDOWN:
+                                st.page_link(target, label=label, icon=icon)
+                    next_slot += 1
+                with sub_cols[next_slot]:
                     for target, label, icon in _NAV_RIGHT:
                         st.page_link(target, label=label)
         with col_auth:
@@ -872,6 +890,8 @@ def render_top_nav():
         with st.container(key="il_mobile_nav_panel"):
             for target, label, icon in _NAV_CENTER + _PROFILE_DROPDOWN + _NAV_RIGHT:
                 st.page_link(target, label=label, icon=icon)
+
+    render_status_panel()
 
 
 def _ensure_db_ready():
