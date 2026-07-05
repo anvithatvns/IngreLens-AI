@@ -126,10 +126,15 @@ header[data-testid="stHeader"] *{{display:none!important}}
    the left, Remaining Calories pushed to the far right of the same row */
 .st-key-il_status_panel{{
   display:flex!important;flex-direction:row!important;
-  justify-content:space-between;align-items:center;gap:16px;
+  justify-content:flex-start;align-items:center;gap:16px;
   margin:-0.5rem -0.25rem 1rem;padding:8px 18px;
 }}
-.st-key-il_status_panel [data-testid="stMarkdownContainer"]{{width:auto}}
+/* Streamlit gives each element-container width:100% by default, which (in
+   this flex row) splits the two pills into two equal-width halves instead
+   of letting them hug their own content — override to shrink-to-fit, then
+   push the second pill (Remaining) flush to the right with auto margin. */
+.st-key-il_status_panel .stElementContainer{{width:auto!important;flex:0 0 auto!important}}
+.st-key-il_status_panel .stElementContainer:last-child{{margin-left:auto}}
 
 /* ── PREMIUM LOGIN / ACCOUNT (inline in the main nav row, far right) ── */
 .st-key-il_login_btn{{display:flex;justify-content:flex-end}}
@@ -554,7 +559,6 @@ def _render_login_popover():
                     st.rerun()
                 else:
                     st.error("Invalid email or password.")
-            st.caption("Demo: test123@gmail.com / test123")
         with tab_up:
             name = st.text_input("Name", key="signup_name")
             email2 = st.text_input("Email", key="signup_email")
@@ -1360,7 +1364,7 @@ def render_floating_assistant():
     )
 
     with st.container(key="ai_fab_btn"):
-        if st.button("✕" if st.session_state.ai_widget_open else "🤖", key="ai_fab_toggle_btn"):
+        if st.button("✕" if st.session_state.ai_widget_open else "💬", key="ai_fab_toggle_btn"):
             st.session_state.ai_widget_open = not st.session_state.ai_widget_open
             st.rerun()
 
