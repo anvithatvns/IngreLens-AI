@@ -1,0 +1,91 @@
+<svg viewBox="0 0 1180 760" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2fb586"/>
+    </marker>
+  </defs>
+
+  <rect width="1180" height="760" fill="#0b120f"/>
+
+  <!-- Title -->
+  <text x="590" y="42" text-anchor="middle" fill="#eaf2ed" font-size="26" font-weight="700">IngreLens AI — Coordinator + 5 Specialist Agents</text>
+  <text x="590" y="66" text-anchor="middle" fill="#9fb6aa" font-size="14">Kaggle AI Agents Capstone — Multi-Agent System + MCP Server</text>
+
+  <!-- Clients -->
+  <rect x="70" y="100" width="230" height="60" rx="12" fill="#16211b" stroke="#2fb586" stroke-width="2"/>
+  <text x="185" y="125" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">Streamlit UI</text>
+  <text x="185" y="145" text-anchor="middle" fill="#9fb6aa" font-size="12">8 pages · app.py</text>
+
+  <rect x="880" y="100" width="230" height="60" rx="12" fill="#16211b" stroke="#2fb586" stroke-width="2"/>
+  <text x="995" y="125" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">MCP Client</text>
+  <text x="995" y="145" text-anchor="middle" fill="#9fb6aa" font-size="12">Claude Desktop, IDE agent, etc.</text>
+
+  <rect x="820" y="200" width="120" height="34" rx="8" fill="#101a15" stroke="#6fae95" stroke-width="1.5"/>
+  <text x="880" y="222" text-anchor="middle" fill="#9fb6aa" font-size="12">mcp_server.py</text>
+
+  <!-- Arrows into Coordinator -->
+  <line x1="185" y1="160" x2="480" y2="255" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="995" y1="160" x2="880" y2="200" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="880" y1="234" x2="650" y2="260" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Coordinator -->
+  <rect x="440" y="255" width="300" height="80" rx="14" fill="#1c5c45" stroke="#c8ff5b" stroke-width="3"/>
+  <text x="590" y="288" text-anchor="middle" fill="#eaf2ed" font-size="20" font-weight="800">🧭 Coordinator Agent</text>
+  <text x="590" y="310" text-anchor="middle" fill="#d9f7c2" font-size="12">decides which specialist(s) to call, per request</text>
+  <text x="590" y="325" text-anchor="middle" fill="#d9f7c2" font-size="11">coordinator_agent.py · CoordinatorAgent.handle()</text>
+
+  <!-- 5 specialists row -->
+  <!-- Product Fetch -->
+  <rect x="40"  y="420" width="200" height="90" rx="12" fill="#16211b" stroke="#6fae95" stroke-width="2"/>
+  <text x="140" y="448" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">📦 Product Fetch</text>
+  <text x="140" y="466" text-anchor="middle" fill="#9fb6aa" font-size="12">product_service.py</text>
+  <text x="140" y="484" text-anchor="middle" fill="#9fb6aa" font-size="11">Open Food Facts API</text>
+  <text x="140" y="500" text-anchor="middle" fill="#9fb6aa" font-size="11">(3M+ products)</text>
+
+  <!-- OCR -->
+  <rect x="270" y="420" width="200" height="90" rx="12" fill="#16211b" stroke="#6fae95" stroke-width="2"/>
+  <text x="370" y="448" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">👁️ OCR Agent</text>
+  <text x="370" y="466" text-anchor="middle" fill="#9fb6aa" font-size="12">ocr_service.py</text>
+  <text x="370" y="484" text-anchor="middle" fill="#9fb6aa" font-size="11">Tesseract + image</text>
+  <text x="370" y="500" text-anchor="middle" fill="#9fb6aa" font-size="11">preprocessing</text>
+
+  <!-- Classification -->
+  <rect x="500" y="420" width="200" height="90" rx="12" fill="#16211b" stroke="#6fae95" stroke-width="2"/>
+  <text x="600" y="448" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">🏷️ Classification</text>
+  <text x="600" y="466" text-anchor="middle" fill="#9fb6aa" font-size="12">analysis_service.py</text>
+  <text x="600" y="484" text-anchor="middle" fill="#9fb6aa" font-size="11">5-layer engine +</text>
+  <text x="600" y="500" text-anchor="middle" fill="#9fb6aa" font-size="11">ChromaDB vector RAG</text>
+
+  <!-- Nutrition -->
+  <rect x="730" y="420" width="200" height="90" rx="12" fill="#16211b" stroke="#6fae95" stroke-width="2"/>
+  <text x="830" y="448" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">📊 Nutrition</text>
+  <text x="830" y="466" text-anchor="middle" fill="#9fb6aa" font-size="12">analysis_service.py</text>
+  <text x="830" y="484" text-anchor="middle" fill="#9fb6aa" font-size="11">health score,</text>
+  <text x="830" y="500" text-anchor="middle" fill="#9fb6aa" font-size="11">Nutri-Score, portions</text>
+
+  <!-- AI Analyst -->
+  <rect x="960" y="420" width="180" height="90" rx="12" fill="#16211b" stroke="#6fae95" stroke-width="2"/>
+  <text x="1050" y="448" text-anchor="middle" fill="#eaf2ed" font-size="15" font-weight="700">🤖 AI Analyst</text>
+  <text x="1050" y="466" text-anchor="middle" fill="#9fb6aa" font-size="12">llm_service.py</text>
+  <text x="1050" y="484" text-anchor="middle" fill="#9fb6aa" font-size="11">Free rule-based, or</text>
+  <text x="1050" y="500" text-anchor="middle" fill="#9fb6aa" font-size="11">OpenAI/Anthropic</text>
+
+  <!-- Arrows Coordinator -> specialists -->
+  <line x1="500" y1="335" x2="140" y2="420" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="540" y1="335" x2="370" y2="420" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="590" y1="335" x2="600" y2="420" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="640" y1="335" x2="830" y2="420" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="680" y1="335" x2="1050" y2="420" stroke="#2fb586" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- downstream stores -->
+  <rect x="500" y="580" width="200" height="50" rx="10" fill="#101a15" stroke="#6fae95" stroke-width="1.5"/>
+  <text x="600" y="601" text-anchor="middle" fill="#9fb6aa" font-size="12">Knowledge Base</text>
+  <text x="600" y="618" text-anchor="middle" fill="#9fb6aa" font-size="11">300+ ingredients</text>
+  <line x1="600" y1="510" x2="600" y2="580" stroke="#6fae95" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Routing rules box -->
+  <rect x="60" y="660" width="1060" height="80" rx="12" fill="#16211b" stroke="#c8ff5b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="90" y="685" fill="#d9f7c2" font-size="13" font-weight="700">Real branching, not a fixed pipeline:</text>
+  <text x="90" y="705" fill="#9fb6aa" font-size="12">• barcode → Product Fetch → Classification (OCR never runs)      • image → OCR → Classification (no product lookup)</text>
+  <text x="90" y="723" fill="#9fb6aa" font-size="12">• raw text → Classification only      • bare question → AI Analyst only (no classification runs at all)</text>
+</svg>

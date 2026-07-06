@@ -26,6 +26,9 @@ plotly>=5.18.0
 Pillow>=10.0.0
 pytesseract>=0.3.10   # also requires: sudo apt-get install tesseract-ocr
 
+# ── MCP Server — exposes the Coordinator Agent as MCP tools ──────────────────
+mcp[cli]>=1.28.0
+
 # ── Testing ───────────────────────────────────────────────────────────────────
 pytest>=7.0.0
 pytest-cov>=4.0.0

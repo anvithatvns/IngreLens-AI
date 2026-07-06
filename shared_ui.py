@@ -1306,10 +1306,23 @@ def render_allergen_pills(allergens):
     )
 
 @st.cache_resource(show_spinner=False)
-def _get_assistant_agent():
+def _get_coordinator_agent():
+    """The same Coordinator Agent the MCP server exposes (backend/services/
+    coordinator_agent.py) — the floating chat and the MCP tool both route
+    through this one decision point rather than each having their own copy
+    of the routing logic."""
+    from backend.services.product_service import ProductFetchService
+    from backend.services.ocr_service import OCRService
     from backend.services.analysis_service import IngredientAnalysisService
     from backend.services.llm_service import IngredientAnalystAgent
-    return IngredientAnalystAgent(IngredientAnalysisService())
+    from backend.services.coordinator_agent import CoordinatorAgent
+    analysis_svc = IngredientAnalysisService()
+    return CoordinatorAgent(
+        product_service=ProductFetchService(),
+        ocr_service=OCRService(),
+        analysis_service=analysis_svc,
+        analyst_agent=IngredientAnalystAgent(analysis_svc),
+    )
 
 
 # Keyword → canned answer for questions about using the app itself (as opposed
@@ -1352,11 +1365,15 @@ def _match_app_faq(question: str):
 
 
 def ask_assistant(question: str) -> str:
+    """Local app-usage FAQ first (fast, deterministic, no product data
+    involved), otherwise routed through the Coordinator Agent — same
+    decision point the MCP server's tool uses."""
     faq = _match_app_faq(question)
     if faq:
         return faq
     try:
-        return _get_assistant_agent().answer(question)
+        result = _get_coordinator_agent().handle(question=question)
+        return result.message
     except Exception as e:
         return f"Sorry, I couldn't process that right now ({e})."
 
@@ -1434,10 +1451,14 @@ def render_floating_assistant():
 
 
 def render_agent_row():
+    """Names here match backend/services/coordinator_agent.py and README.md
+    exactly — one Coordinator that routes to whichever of the 5 specialists
+    a given request actually needs (see CoordinatorAgent.handle)."""
     st.markdown(
         f'<div style="margin:0.5rem 0 1rem">'
-        f'<span class="agent-badge">🔍 Product Agent</span>'
-        f'<span class="agent-badge">🧬 Analysis Agent</span>'
+        f'<span class="agent-badge">🧭 Coordinator Agent</span>'
+        f'<span class="agent-badge">📦 Product Fetch Agent</span>'
+        f'<span class="agent-badge">👁️ OCR Agent</span>'
         f'<span class="agent-badge">🏷️ Classification Agent</span>'
         f'<span class="agent-badge">📊 Nutrition Agent</span>'
         f'<span class="agent-badge">🤖 AI Analyst Agent</span>'
