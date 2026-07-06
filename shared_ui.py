@@ -58,6 +58,13 @@ header[data-testid="stHeader"] *{{display:none!important}}
 }}
 .st-key-il_topnav [data-testid="stHorizontalBlock"]{{align-items:center}}
 .il-topnav-brand{{display:flex;align-items:center;gap:12px;white-space:nowrap;padding-left:6px}}
+/* Brand/logo doubles as the Home link — the real page_link is invisible,
+   stretched over the whole logo so any click on it navigates Home. */
+.st-key-il_topnav_brand_link{{position:relative;cursor:pointer}}
+.st-key-il_topnav_brand_link [data-testid="stPageLink"]{{
+  position:absolute;inset:0;opacity:0;z-index:2;padding:0!important;
+}}
+.st-key-il_topnav_brand_link [data-testid="stPageLink"] p{{font-size:0!important}}
 .il-topnav-word{{font-weight:800;font-size:1.02rem;letter-spacing:-0.01em;color:{SAGE['charcoal']}}}
 .il-topnav-word b{{color:{SAGE['mid']}}}
 
@@ -826,7 +833,6 @@ def render_sidebar():
 
 
 _NAV_CENTER = [
-    ("app.py", "Home", "🏠"),
     ("pages/1_📷_Scanner.py", "Scanner", "📷"),
     ("pages/2_🔍_Analyzer.py", "Search Product", "🔍"),
     ("pages/3_🔢_Barcode_Lookup.py", "Barcode Lookup", "🔢"),
@@ -869,7 +875,13 @@ def render_top_nav():
     with st.container(key="il_topnav"):
         col_logo, col_links, col_auth, col_toggle = st.columns([1.5, 8.0, 2.2, 0.3])
         with col_logo:
-            st.markdown(logo_html, unsafe_allow_html=True)
+            with st.container(key="il_topnav_brand_link"):
+                st.markdown(logo_html, unsafe_allow_html=True)
+                # Invisible page_link overlaid on the brand/logo so clicking it
+                # anywhere performs the same Home navigation the old "Home" nav
+                # item did (real Streamlit routing, not a raw <a> that would
+                # drop the persisted-auth query param on a full page load).
+                st.page_link("app.py", label="IngreLens AI")
         with col_links:
             with st.container(key="il_topnav_links"):
                 # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
@@ -877,7 +889,7 @@ def render_top_nav():
                 # Profile/Food Logs/History only ever appear grouped inside the
                 # authenticated account control — logged out, there's no Profile
                 # menu in the nav at all, just Login.
-                _nav_ratios = [0.8, 1.0, 1.55, 1.55, 1.7, 0.9]
+                _nav_ratios = [1.0, 1.55, 1.55, 1.7, 0.9]
                 sub_cols = st.columns(_nav_ratios, gap="small")
                 for i, (target, label, icon) in enumerate(_NAV_CENTER):
                     with sub_cols[i]:
@@ -957,6 +969,8 @@ _CLEARABLE_PAGE_KEYS = [
     # Analyzer / Search
     "ar", "ap", "analyzer_pending_query", "analyzer_products",
     "analyzer_suggestions", "analyzer_query", "analyzer_suggest_pick",
+    # Comparison
+    "cmp_result", "cmp_a", "cmp_b", "cmp_trigger",
 ]
 
 
@@ -1524,10 +1538,19 @@ def _show_portion_dialog(name: str, nm: dict, product: dict, btn_key: str):
     except ImportError:
         pass
 
-    if st.button("➕ Add to Food Log", key=f"add_food_log_{btn_key}", type="primary", use_container_width=True):
+    st.markdown("**Meal**")
+    meal_type = st.radio(
+        "Meal", ["Breakfast", "Lunch", "Snack", "Dinner"], index=None,
+        key=f"portion_meal_{btn_key}", horizontal=True, label_visibility="collapsed",
+    )
+    if meal_type is None:
+        st.caption("⬆️ Select a meal before adding to your Food Log.")
+
+    if st.button("➕ Add to Food Log", key=f"add_food_log_{btn_key}", type="primary",
+                 use_container_width=True, disabled=meal_type is None):
         db.log_consumption(
             user_id, name, calories=calories, protein=protein, fat=fat, sugar=sugar,
-            quantity=consumed, unit=unit_label,
+            quantity=consumed, unit=unit_label, meal_type=meal_type,
         )
         log_activity("Food Log Add", "Analysis")
         st.session_state.pop(f"_consumption_open_{btn_key}", None)  # don't reopen this dialog on return

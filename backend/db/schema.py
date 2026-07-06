@@ -48,6 +48,7 @@ TABLE_STATEMENTS = [
         sugar        REAL DEFAULT 0,
         quantity     REAL,
         unit         TEXT,
+        meal_type    TEXT,
         log_date     TEXT NOT NULL,
         timestamp    TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -113,6 +114,7 @@ COLUMN_MIGRATIONS = [
     ("consumption_log", "quantity", "REAL"),
     ("consumption_log", "unit", "TEXT"),
     ("user_preferences", "diet_modes", "TEXT"),
+    ("consumption_log", "meal_type", "TEXT"),
 ]
 
 INDEX_STATEMENTS = [

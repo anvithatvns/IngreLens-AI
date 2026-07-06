@@ -100,8 +100,8 @@ _QA_ICON_BARCODE = f'''<svg viewBox="0 0 120 100" width="100%" height="72" style
 QUICK_ACTIONS = [
     (_QA_ICON_SCANNER, "Scanner", "pages/1_📷_Scanner.py", "qa_scanner"),
     (_QA_ICON_SEARCH, "Search Product", "pages/2_🔍_Analyzer.py", "qa_search"),
-    (_QA_ICON_COMPARE, "Compare Products", "pages/4_⚖️_Comparison.py", "qa_compare"),
     (_QA_ICON_BARCODE, "Barcode Lookup", "pages/3_🔢_Barcode_Lookup.py", "qa_barcode"),
+    (_QA_ICON_COMPARE, "Compare Products", "pages/4_⚖️_Comparison.py", "qa_compare"),
 ]
 qa_cols = st.columns(4)
 for i, (icon_svg, label, target, key) in enumerate(QUICK_ACTIONS):

@@ -233,6 +233,11 @@ def show_comparison(ra, rb, pa, pb):
 
 
 # ── Run comparison ────────────────────────────────────────────────────────────
+# Results are stashed in session_state (not just local vars) so they survive
+# reruns triggered by widgets nested inside show_comparison() itself — e.g.
+# clicking "Check Daily Consumption" reruns the whole script, and without
+# this the comparison would vanish since cmp_btn is only True on the exact
+# run the Compare button was clicked.
 if cmp_btn and qa and qb:
     with st.spinner(f"🔍 Searching for '{qa}' and '{qb}'…"):
         pal = smart_search(qa)
@@ -244,7 +249,6 @@ if cmp_btn and qa and qb:
         st.error(f"❌ Could not find **'{qb}'**. Try a different name or check spelling.")
     else:
         pa, pb = pal[0], pbl[0]
-        st.success(f"✅ Comparing: **{pa['name']}** vs **{pb['name']}**")
 
         with st.spinner("🤖 Running 5-agent analysis on both products…"):
             ra = cached_analyze(svc, pa.get("ingredients_text",""), pa["name"], barcode=pa.get("barcode"))
@@ -253,7 +257,13 @@ if cmp_btn and qa and qb:
         add_history(pa["name"], ra.overall_vegan, pa.get("ingredients_text",""), ra, barcode=pa.get("barcode"))
         add_history(pb["name"], rb.overall_vegan, pb.get("ingredients_text",""), rb, barcode=pb.get("barcode"))
         log_activity("Product Comparison", "Comparison")
-        show_comparison(ra, rb, pa, pb)
+        st.session_state["cmp_result"] = {"ra": ra, "rb": rb, "pa": pa, "pb": pb}
 
 elif cmp_btn:
     st.warning("⚠️ Please enter both Product A and Product B to compare.")
+    st.session_state.pop("cmp_result", None)
+
+if st.session_state.get("cmp_result"):
+    r = st.session_state["cmp_result"]
+    st.success(f"✅ Comparing: **{r['pa']['name']}** vs **{r['pb']['name']}**")
+    show_comparison(r["ra"], r["rb"], r["pa"], r["pb"])

@@ -56,13 +56,23 @@ with s4:
 st.progress(pct / 100, text=f"{pct}% of daily calorie target used")
 st.markdown("")
 
-# ── Entry list — grouped under the selected date ──────────────────────────────
+# ── Entry list — grouped under the selected date, then split by meal ─────────
 st.markdown(f"### 📋 Entries — {selected_date.strftime('%B %d, %Y')}")
 
 if not entries:
     st.info("📭 No food logged for this date yet. Analyze a product and use **✅ Check Daily Consumption** to add one.")
 else:
+    MEAL_SECTIONS = ["Breakfast", "Lunch", "Snack", "Dinner"]
+    MEAL_ICONS = {"Breakfast": "🌅", "Lunch": "🍲", "Snack": "🍎", "Dinner": "🌙"}
+    by_meal = {m: [] for m in MEAL_SECTIONS}
+    other = []
     for e in entries:
+        if e.get("meal_type") in by_meal:
+            by_meal[e["meal_type"]].append(e)
+        else:
+            other.append(e)
+
+    def render_entry(e):
         try:
             t = datetime.fromisoformat(e["timestamp"]).strftime("%I:%M %p")
         except (ValueError, TypeError):
@@ -81,3 +91,17 @@ else:
                 db.delete_consumption_entry(e["log_id"], user_id)
                 st.rerun()
         st.divider()
+
+    for meal in MEAL_SECTIONS:
+        meal_entries = by_meal[meal]
+        if not meal_entries:
+            continue
+        meal_cal = sum(e["calories"] for e in meal_entries)
+        st.markdown(f"#### {MEAL_ICONS[meal]} {meal} — {meal_cal:.0f} kcal")
+        for e in meal_entries:
+            render_entry(e)
+
+    if other:
+        st.markdown("#### 🍽️ Other")
+        for e in other:
+            render_entry(e)

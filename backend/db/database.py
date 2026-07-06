@@ -455,19 +455,20 @@ def log_activity(user_id: str, action: str, page: str = "") -> bool:
 # ── Consumption tracking / Food Log (for the daily-intake checker) ──────────
 def log_consumption(user_id: str, product_name: str, calories: float = 0,
                      protein: float = 0, fat: float = 0, sugar: float = 0,
-                     quantity: float = None, unit: str = None) -> bool:
-    """Record one food-log entry. quantity/unit are optional (e.g. 45g,
-    2 pieces) — kept nullable so older callers that don't pass them still work."""
+                     quantity: float = None, unit: str = None, meal_type: str = None) -> bool:
+    """Record one food-log entry. quantity/unit/meal_type are optional (e.g.
+    45g, 2 pieces, "Breakfast") — kept nullable so older callers that don't
+    pass them still work."""
     try:
         with get_connection() as conn:
             now = _now()
             conn.execute(
                 """INSERT INTO consumption_log
                        (user_id, product_name, calories, protein, fat, sugar,
-                        quantity, unit, log_date, timestamp)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        quantity, unit, meal_type, log_date, timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (user_id, product_name, calories or 0, protein or 0, fat or 0, sugar or 0,
-                 quantity, unit, date.today().isoformat(), now),
+                 quantity, unit, meal_type, date.today().isoformat(), now),
             )
         return True
     except Exception as e:
@@ -500,7 +501,7 @@ def get_consumption_entries(user_id: str, log_date: str = None) -> list:
         with get_connection() as conn:
             rows = conn.execute(
                 """SELECT log_id, product_name, calories, protein, fat, sugar,
-                          quantity, unit, log_date, timestamp
+                          quantity, unit, meal_type, log_date, timestamp
                    FROM consumption_log WHERE user_id = ? AND log_date = ?
                    ORDER BY timestamp DESC""",
                 (user_id, log_date),
