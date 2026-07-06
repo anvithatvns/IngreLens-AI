@@ -4,6 +4,7 @@
 
 **Tagline:** *SCAN, ANALYSE & EAT SMARTER*
 
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?logo=streamlit)](https://ingrelens-ai.streamlit.app/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/streamlit-1.35+-red)](https://streamlit.io)
 [![Tests](https://img.shields.io/badge/tests-194%20passing-brightgreen)]()
@@ -11,6 +12,8 @@
 [![ADK](https://img.shields.io/badge/Google-ADK-4285F4)]()
 [![Free Tier](https://img.shields.io/badge/cost-free%20tier-green)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**🔴 Live demo: [ingrelens-ai.streamlit.app](https://ingrelens-ai.streamlit.app/)** — no login, no setup, click and use it now.
 
 ---
 
@@ -129,8 +132,9 @@ IDE agent, etc.) to call directly — see [MCP Server](#-mcp-server) below.
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR_USERNAME/ingrelens-ai.git
-cd ingrelens-ai
+git clone https://github.com/anvithatvns/IngreLens-AI.git
+cd IngreLens-AI
+git checkout kaggle   # this is the branch with the full submission
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -158,9 +162,12 @@ docker-compose up --build
 
 ### Streamlit Cloud (Free — 1 click)
 
+**Already deployed and live: [ingrelens-ai.streamlit.app](https://ingrelens-ai.streamlit.app/)** — deployed from the `kaggle` branch, `app.py` as the entry point, no API keys required.
+
+To deploy your own copy:
 1. Push to GitHub
 2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. New app → select repo → `app.py`
+3. New app → select repo → branch `kaggle` → `app.py`
 4. Deploy ✅ *(No API keys needed — works free)*
 
 ---
@@ -515,7 +522,7 @@ locations for each concept, so nothing has to be hunted down:
 | **Multi-agent system (ADK)** | `backend/services/coordinator_agent.py`, `backend/adk/agents.py` | Deterministic Coordinator with real branching logic (not a fixed pipeline), routes to 5 specialists — tested in `tests/test_coordinator_agent.py`. The same 6-agent shape is also expressed as native Google ADK `Agent`/`FunctionTool`/sub-agent primitives — see [Google ADK Agent Layer](#-google-adk-agent-layer) above and `tests/test_adk_agents.py` (11 tests). |
 | **MCP Server** | `mcp_server.py`, `backend/adk/agents.py::mcp_backed_coordinator` | 3 tools (`analyze_ingredients`, `analyze_barcode`, `ask_ingredient_question`) routed through the Coordinator — reachable from any MCP client, **and** from an ADK agent directly via `McpToolset` (real subprocess handshake verified in `tests/test_adk_agents.py::TestADKMCPIntegration`). |
 | **Security features** | `.gitignore`, `.env.example`, `config/settings.py`, `utils/logger.py` | Secrets never committed (`.env`, `.streamlit/secrets.toml` gitignored); no hardcoded keys anywhere in the repo; `IngredientParser` bounds/sanitizes untrusted input before classification; graceful fallback (never crashes) when OCR/LLM/network calls fail; logging fixed to stderr so it can never corrupt the MCP stdio protocol channel (see Risk Checklist). |
-| **Deployability** | `Dockerfile`, `docker-compose.yml` | One-command local run (`docker-compose up --build`) or free Streamlit Cloud deploy — see [Quick Start](#-quick-start) above. |
+| **Deployability** | `Dockerfile`, `docker-compose.yml`, live at [ingrelens-ai.streamlit.app](https://ingrelens-ai.streamlit.app/) | Not just deployable — actually deployed and verified working. One-command local run (`docker-compose up --build`) also available — see [Quick Start](#-quick-start) above. |
 | **Agent skills / tool use** | `backend/services/analysis_service.py`, `backend/services/product_service.py`, `backend/adk/tools.py` | Each specialist is built from composable tools: knowledge-base lookup, alias matching, keyword rules, ChromaDB vector search, Open Food Facts API — the same functions ADK wraps as `FunctionTool`s, with no second implementation. |
 | **Evaluation / proof layer** | `evaluation/` | 20 hand-written edge cases (unknown products, conflicting labels, allergies, broken barcodes) scored on routing accuracy, classification accuracy, fallback success, and tool execution success — see [Evaluation Framework](evaluation/README.md). |
 
@@ -595,11 +602,8 @@ Honest gaps a judge could find — disclosed here rather than hidden:
    though the mismatched ingredient still correctly lands in
    `non_vegan_ingredients`. Tracked explicitly in `evaluation/datasets/
    food_label_edge_cases.json` (case `fl_06`) rather than papered over.
-3. **No live deployment URL yet.** `Dockerfile`/`docker-compose.yml` work
-   locally; a Streamlit Cloud deploy is one click away (see Quick Start) but
-   hasn't been done as of this writing — do this before recording the demo.
-4. **Antigravity video segment is not yet recorded.** The demo script above
-   describes exactly what to show; it still has to be captured on video.
+3. **Live deployment exists and is verified working:** [ingrelens-ai.streamlit.app](https://ingrelens-ai.streamlit.app/), deployed from the `kaggle` branch. Tested live end-to-end (search, classification, agent badges, floating AI Analyst chat) with zero console errors. Streamlit Community Cloud's free tier does put idle apps to sleep — the first request after inactivity takes a few seconds to wake, which is expected, not a bug.
+4. **Antigravity video segment is not recorded, and this key concept is not being claimed.** Antigravity is Google's separate agentic IDE (a development-workflow tool), not something this app integrates at runtime — this project was built in Claude Code. Rather than force an inauthentic claim, we rely on the other 4 key concepts already met (Multi-agent/ADK, MCP Server, Security, Deployability), comfortably clearing the required minimum of 3.
 5. **Vector search + LLM analyst have real per-request latency** (ChromaDB
    embedding lookup, optional network calls) — fine for a demo, would need
    caching/batching at real scale (see Scalability Path above).
