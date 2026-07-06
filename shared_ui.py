@@ -57,14 +57,16 @@ header[data-testid="stHeader"] *{{display:none!important}}
   border-bottom:1px solid rgba(232,255,214,0.08);
 }}
 .st-key-il_topnav [data-testid="stHorizontalBlock"]{{align-items:center}}
-.il-topnav-brand{{display:flex;align-items:center;gap:12px;white-space:nowrap;padding-left:6px}}
-/* Brand/logo doubles as the Home link — the real page_link is invisible,
-   stretched over the whole logo so any click on it navigates Home. */
-.st-key-il_topnav_brand_link{{position:relative;cursor:pointer}}
+.il-topnav-brand{{display:flex;align-items:center;gap:12px;white-space:nowrap;padding-left:6px;cursor:pointer}}
+/* Brand/logo doubles as the Home link. The real st.page_link is kept in
+   the DOM (for genuine Streamlit routing) but visually collapsed —
+   clicks are forwarded to it from the visible logo via JS (below),
+   since Streamlit's own fit-content sizing on the link/anchor kept
+   winning over any inset:0 overlay attempt. */
+.st-key-il_topnav_brand_link{{position:relative}}
 .st-key-il_topnav_brand_link [data-testid="stPageLink"]{{
-  position:absolute;inset:0;opacity:0;z-index:2;padding:0!important;
+  position:absolute;top:0;left:0;opacity:0;pointer-events:none;
 }}
-.st-key-il_topnav_brand_link [data-testid="stPageLink"] p{{font-size:0!important}}
 .il-topnav-word{{font-weight:800;font-size:1.02rem;letter-spacing:-0.01em;color:{SAGE['charcoal']}}}
 .il-topnav-word b{{color:{SAGE['mid']}}}
 
@@ -859,6 +861,7 @@ def render_top_nav():
     space is reserved when logged out. Profile/Food Logs/History only
     exist as a dropdown (popover) inside the authenticated account
     control — logged out, there's no Profile menu at all, just Login."""
+    import streamlit.components.v1 as components
     if "show_mobile_nav" not in st.session_state:
         st.session_state.show_mobile_nav = False
 
@@ -877,11 +880,26 @@ def render_top_nav():
         with col_logo:
             with st.container(key="il_topnav_brand_link"):
                 st.markdown(logo_html, unsafe_allow_html=True)
-                # Invisible page_link overlaid on the brand/logo so clicking it
-                # anywhere performs the same Home navigation the old "Home" nav
-                # item did (real Streamlit routing, not a raw <a> that would
-                # drop the persisted-auth query param on a full page load).
+                # A real page_link performs the same Home navigation the old
+                # "Home" nav item did (genuine Streamlit routing — a raw <a>
+                # would drop the persisted-auth query param on a full page
+                # load). It's visually collapsed; clicks on the visible logo
+                # are forwarded to its inner <a> via JS, since Streamlit's
+                # own fit-content sizing on the link kept winning over any
+                # CSS-only inset:0 overlay attempt.
                 st.page_link("app.py", label="IngreLens AI")
+                components.html(
+                    """<script>(function(){
+                        const doc = window.parent.document;
+                        const brand = doc.querySelector('.il-topnav-brand');
+                        const link = doc.querySelector(
+                            '.st-key-il_topnav_brand_link [data-testid="stPageLink"] a');
+                        if (brand && link) {
+                            brand.onclick = function(){ link.click(); };
+                        }
+                    })();</script>""",
+                    height=0,
+                )
         with col_links:
             with st.container(key="il_topnav_links"):
                 # Unequal ratios so longer labels (e.g. "Search Product") don't clip.
