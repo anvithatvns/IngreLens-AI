@@ -1,0 +1,42 @@
+[
+  {
+    "id": "al_01_peanuts",
+    "input": {"ingredients_text": "Roasted peanuts, Sugar, Palm oil, Salt", "product_name": "Peanut Snack"},
+    "expected_allergens_include": ["peanuts"]
+  },
+  {
+    "id": "al_02_gluten_wheat",
+    "input": {"ingredients_text": "Wheat flour, Water, Yeast, Salt", "product_name": "Bread"},
+    "expected_allergens_include": ["gluten"]
+  },
+  {
+    "id": "al_03_dairy_milk",
+    "input": {"ingredients_text": "Milk, Sugar, Cocoa", "product_name": "Hot Chocolate"},
+    "expected_allergens_include": ["dairy"]
+  },
+  {
+    "id": "al_04_eggs",
+    "input": {"ingredients_text": "Wheat flour, Sugar, Eggs, Butter, Salt", "product_name": "Shortbread"},
+    "expected_allergens_include": ["eggs"]
+  },
+  {
+    "id": "al_05_soy",
+    "input": {"ingredients_text": "Soy protein isolate, Sugar, Salt", "product_name": "Soy Product"},
+    "expected_allergens_include": ["soy"]
+  },
+  {
+    "id": "al_06_tree_nuts",
+    "input": {"ingredients_text": "Almond flour, Sugar, Eggs, Vanilla extract", "product_name": "Almond Cookies"},
+    "expected_allergens_include": ["tree nuts"]
+  },
+  {
+    "id": "al_07_multiple_allergens_same_product",
+    "input": {"ingredients_text": "Wheat flour, Milk, Eggs, Peanuts, Soy lecithin", "product_name": "Everything Cookie"},
+    "expected_allergens_include": ["gluten", "dairy", "eggs", "peanuts", "soy"]
+  },
+  {
+    "id": "al_08_no_allergens_clean_product",
+    "input": {"ingredients_text": "Water, Cane sugar, Citric acid, Natural fruit flavor", "product_name": "Fruit Soda"},
+    "expected_allergens_include": []
+  }
+]

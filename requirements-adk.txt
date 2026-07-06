@@ -1,0 +1,11 @@
+# IngreLens AI — optional Google ADK layer (backend/adk/)
+#
+# Separate from requirements.txt on purpose: the Streamlit app and the MCP
+# server both run fully on the free tier with zero API keys, and pull in
+# lighter dependencies. ADK's LlmAgent is inherently model-backed, so this
+# layer additionally needs GOOGLE_API_KEY (or Vertex AI credentials) set to
+# process a live turn — see the "Google ADK Agent Layer" section in README.
+#
+# Install: pip install -r requirements.txt -r requirements-adk.txt
+
+google-adk>=2.3.0

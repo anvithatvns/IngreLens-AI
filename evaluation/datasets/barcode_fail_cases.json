@@ -1,0 +1,37 @@
+[
+  {
+    "id": "bc_01_all_zeros",
+    "barcode": "0000000000000",
+    "expect_crash": false,
+    "expect_fallback": true,
+    "note": "Placeholder/all-zero barcode — must resolve to a clearly-labeled mock product, never a crash or a bare None."
+  },
+  {
+    "id": "bc_02_too_short",
+    "barcode": "123",
+    "expect_crash": false,
+    "expect_fallback": true,
+    "note": "Too short to be a real EAN/UPC — must still resolve gracefully."
+  },
+  {
+    "id": "bc_03_non_numeric",
+    "barcode": "NOT-A-BARCODE",
+    "expect_crash": false,
+    "expect_fallback": true,
+    "note": "Malformed/non-numeric barcode string — must not raise."
+  },
+  {
+    "id": "bc_04_empty_string",
+    "barcode": "",
+    "expect_crash": false,
+    "expect_coordinator_error": true,
+    "note": "Empty barcode should be treated as 'no barcode given' by the Coordinator, not passed through to the API."
+  },
+  {
+    "id": "bc_05_real_known_product",
+    "barcode": "3017624010701",
+    "expect_crash": false,
+    "expect_fallback": false,
+    "note": "Sanity check: a real, well-known barcode (Nutella) should resolve to real Open Food Facts data, not the mock fallback."
+  }
+]

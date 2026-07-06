@@ -6,10 +6,50 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/streamlit-1.35+-red)](https://streamlit.io)
-[![Tests](https://img.shields.io/badge/tests-183%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-194%20passing-brightgreen)]()
 [![MCP](https://img.shields.io/badge/MCP-server-purple)]()
+[![ADK](https://img.shields.io/badge/Google-ADK-4285F4)]()
 [![Free Tier](https://img.shields.io/badge/cost-free%20tier-green)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## 🧩 The Problem
+
+A shopper standing in an aisle with a food label has three bad options: trust
+the marketing on the front of the pack (which is legally allowed to say
+"natural" next to an ingredient list a dozen items long), search each
+ingredient one at a time on their phone, or guess. None of that scales to
+the reality that "vegan," "vegetarian," and "allergen-free" are not one
+yes/no fact — they depend on ingredient-level provenance (is the rennet in
+this cheese microbial or animal? is this natural flavor derived from
+carmine?) that no single lookup answers.
+
+**Why a single LLM call doesn't solve this:** ask one model "is this vegan"
+and it pattern-matches on ingredient *names*, with no structured knowledge
+base, no allergen taxonomy, no confidence signal, and no way to tell you
+*which* ingredient it's unsure about. It also can't fetch a barcode, can't
+run OCR on a photo, and can't distinguish "I don't know" from "no." Bolting
+all of that into one prompt doesn't produce an agent — it produces a
+worse, slower, unauditable version of the deterministic pipeline underneath.
+
+**Why multi-agent + ADK is the right shape for this problem:** the task
+genuinely decomposes into independent specialists — resolving a barcode,
+reading a label image, classifying ingredients, computing nutrition, and
+reasoning in natural language are different skills with different failure
+modes, and the actual routing decision (which of these does *this* request
+need?) is itself worth making explicit and auditable rather than hidden
+inside a prompt. Google's Agent Development Kit gives that decision a real,
+inspectable home — one root agent whose `tools` and `sub_agents` list *is*
+the set of options, instead of an opaque if/else a judge has to trust.
+
+**Why MCP on top of that matters for scale:** once the specialists exist as
+a Coordinator, exposing them over MCP means any MCP-compatible client
+(Claude Desktop, an IDE agent, a future internal tool) gets the same
+capability for free, without re-implementing the routing logic — and, as
+built here, an ADK agent can source its tools *directly from the MCP
+server* (see the ADK section below), so the same tool implementation serves
+three different front doors (Streamlit UI, MCP client, ADK agent) at once.
 
 ---
 
@@ -170,6 +210,76 @@ print(asyncio.run(mcp.call_tool('analyze_ingredients', {
 
 ---
 
+## 🧠 Google ADK Agent Layer
+
+`backend/adk/` puts the same Coordinator + 5 specialists onto native
+[Google ADK](https://google.github.io/adk-docs/) primitives — an additional,
+opt-in interface onto the exact same tool implementations, not a rewrite:
+
+| Specialist | ADK primitive | Why |
+|---|---|---|
+| Product Fetch | `FunctionTool` | deterministic data fetch — nothing to reason about |
+| OCR | `FunctionTool` | deterministic extraction — nothing to reason about |
+| Nutrition | `FunctionTool` | deterministic computation — nothing to reason about |
+| Classification | `Agent` (LlmAgent) sub-agent | reasons about *why* (names the specific ingredient, explains the category), not just a raw return value |
+| AI Analyst | `Agent` (LlmAgent) sub-agent | fallback reasoning agent for free-form questions with no product data |
+| **Coordinator** | **`Agent` (LlmAgent), root** | its `tools=[...]` and `sub_agents=[...]` list *is* the routing decision — ADK resolves which one actually gets called, instead of our own if/else |
+
+```
+                    ┌──────────────────────────┐
+                    │   root_agent (ADK)        │
+                    │   "ingrelens_coordinator"  │
+                    └─┬──────┬──────┬───────────┘
+        tools ─────────┘      │      └───────── sub_agents
+        (FunctionTool)        │                  (Agent, reasoning)
+   ┌────────┬────────┬────────┘          ┌────────────┬─────────────┐
+   ▼        ▼        ▼                   ▼                         ▼
+Product   OCR    Nutrition      classification_agent        ai_analyst_agent
+Fetch                            (calls classify_ingredients)  (pure reasoning,
+                                                                 no tool)
+```
+
+**ADK → MCP → Tools, demonstrated directly:** `backend/adk/agents.py` also
+defines `mcp_backed_coordinator()`, an alternate Coordinator whose tools come
+from **our own `mcp_server.py` over stdio** via ADK's `McpToolset`, instead
+of in-process `FunctionTool`s:
+
+```python
+from backend.adk.agents import mcp_backed_coordinator
+agent = mcp_backed_coordinator()   # tools sourced live from mcp_server.py
+```
+
+This is verified with a real subprocess handshake (no LLM call needed to list
+tools) in `tests/test_adk_agents.py::TestADKMCPIntegration` — ADK spawns
+`mcp_server.py`, lists its tools over the MCP protocol, and gets back exactly
+`analyze_ingredients`, `analyze_barcode`, `ask_ingredient_question`.
+
+**Setup:**
+```bash
+pip install -r requirements-adk.txt   # separate from requirements.txt on purpose
+export GOOGLE_API_KEY=your-key-here   # or configure Vertex AI credentials
+```
+
+```python
+from backend.adk.agents import root_agent
+from google.adk.runners import InMemoryRunner
+
+runner = InMemoryRunner(agent=root_agent)
+# runner.run(...) processes a live turn — requires GOOGLE_API_KEY above.
+```
+
+**Why this is a separate, opt-in layer and not the default path:** the
+Streamlit app and the MCP server both work with zero configuration and zero
+API keys — that's a deliberate free-tier design choice this project already
+makes for `llm_service.py`. `Agent` in ADK is inherently model-backed
+(`Agent is LlmAgent`), so requiring it as the *only* path would break that
+promise. Every object in `backend/adk/` is verified to construct correctly
+without any key (`tests/test_adk_agents.py`, 11 tests, all passing); running
+an actual live turn is the one piece that needs `GOOGLE_API_KEY` — see the
+Risk Checklist for the honest version of this tradeoff.
+
+---
+
 ## 🧪 Running Tests
 
 ```bash
@@ -182,8 +292,14 @@ python -m pytest tests/test_analysis.py -v
 # Coordinator Agent routing tests (6 tests) — asserts on *which* agents ran
 python -m pytest tests/test_coordinator_agent.py -v
 
+# ADK agent-layer wiring tests (11 tests) — no GOOGLE_API_KEY needed
+python -m pytest tests/test_adk_agents.py -v
+
 # Run all tests
 python -m pytest tests/ -v
+
+# Evaluation harness — 20 edge cases, routing/classification/fallback/tool metrics
+python -m evaluation.run_evaluation --report evaluation/last_report.md
 
 # Demo dataset (62 products, all categories)
 python tests/demo_dataset.py
@@ -193,9 +309,9 @@ pip install pytest-cov
 python -m pytest tests/ --cov=backend --cov-report=html
 ```
 
-**Test results (183 passed, 0 failed):**
+**Test results (194 passed, 0 failed):**
 ```
-183 passed in ~24s
+194 passed in ~33s
 ✅ Knowledge Base: 19 tests
 ✅ Ingredient Parser: 15 tests
 ✅ Classification Engine: 23 tests
@@ -209,7 +325,13 @@ python -m pytest tests/ --cov=backend --cov-report=html
 ✅ Performance: 5 tests
 ✅ Original unit tests (test_analysis.py): 26 tests
 ✅ Coordinator Agent routing (test_coordinator_agent.py): 6 tests
+✅ ADK agent-layer wiring (test_adk_agents.py): 11 tests
 ```
+
+**Evaluation harness result (20/20 cases, all 4 metrics 100%)** — see
+[`evaluation/README.md`](evaluation/README.md) for the metric definitions and
+[`evaluation/last_report.md`](evaluation/last_report.md) for the full
+case-by-case detail a judge can check against the raw dataset files.
 
 ---
 
@@ -236,18 +358,35 @@ ingrelens-ai/
 │   └── 8_🍽️_Food_Logs.py          ← Daily nutrition / food log tracking
 │
 ├── backend/
-│   └── services/
-│       ├── coordinator_agent.py    ← 🧭 Coordinator Agent — routes a
-│       │                             request to whichever specialist(s)
-│       │                             it actually needs
-│       ├── analysis_service.py     ← 🏷️ Classification Agent (5-layer
-│       │                             engine) + 📊 Nutrition Agent
-│       │                             (health score / Nutri-Score math)
-│       ├── llm_service.py          ← 🤖 AI Analyst Agent (free rule-based
-│       │                             or OpenAI/Anthropic if a key is set)
-│       ├── product_service.py      ← 📦 Product Fetch Agent — Open Food
-│       │                             Facts API + demo fallback
-│       └── ocr_service.py          ← 👁️ OCR Agent — Tesseract + preprocessing
+│   ├── services/
+│   │   ├── coordinator_agent.py    ← 🧭 Coordinator Agent — routes a
+│   │   │                             request to whichever specialist(s)
+│   │   │                             it actually needs
+│   │   ├── analysis_service.py     ← 🏷️ Classification Agent (5-layer
+│   │   │                             engine) + 📊 Nutrition Agent
+│   │   │                             (health score / Nutri-Score math)
+│   │   ├── llm_service.py          ← 🤖 AI Analyst Agent (free rule-based
+│   │   │                             or OpenAI/Anthropic if a key is set)
+│   │   ├── product_service.py      ← 📦 Product Fetch Agent — Open Food
+│   │   │                             Facts API + demo fallback
+│   │   └── ocr_service.py          ← 👁️ OCR Agent — Tesseract + preprocessing
+│   │
+│   └── adk/                        ← Google ADK agent layer (opt-in, needs
+│       │                             GOOGLE_API_KEY — see its README section)
+│       ├── tools.py                 ← FunctionTool wrappers (Product Fetch,
+│       │                             OCR, Classification, Nutrition)
+│       └── agents.py                ← root_agent (ADK Coordinator),
+│                                       classification_agent + ai_analyst_agent
+│                                       (reasoning sub-agents), plus
+│                                       mcp_backed_coordinator() (ADK -> MCP)
+│
+├── evaluation/                     ← Judge-facing proof layer (see its README)
+│   ├── run_evaluation.py            ← Runs real Coordinator/services against
+│   │                                  20 edge cases, reports 4 metrics
+│   └── datasets/
+│       ├── food_label_edge_cases.json
+│       ├── allergy_cases.json
+│       └── barcode_fail_cases.json
 │
 ├── knowledge_base/
 │   └── ingredients.json            ← 300+ ingredients with vegan status
@@ -256,19 +395,22 @@ ingrelens-ai/
 │   └── settings.py                 ← All configuration + env vars
 │
 ├── utils/
-│   └── logger.py                   ← Centralized logging
+│   └── logger.py                   ← Centralized logging (stderr — stdout is
+│                                      reserved for mcp_server.py's JSON-RPC)
 │
 ├── assets/
 │   ├── logo_master.png             ← Source logo (official artwork)
 │   ├── logo_header.png             ← Page hero header logo
 │   ├── logo_sidebar.png            ← Sidebar logo
 │   ├── logo_square.png             ← Page icon / favicon / chat avatar
-│   └── logo_icon.png               ← Icon variant
+│   ├── logo_icon.png               ← Icon variant
+│   └── architecture_diagram.png/.svg ← Real architecture diagram (not ASCII)
 │
 ├── tests/
 │   ├── test_complete_suite.py      ← 151 comprehensive tests
 │   ├── test_analysis.py            ← 26 unit tests
 │   ├── test_coordinator_agent.py   ← 6 Coordinator routing tests
+│   ├── test_adk_agents.py          ← 11 ADK wiring tests (no API key needed)
 │   └── demo_dataset.py             ← 62 demo ingredient lists
 │
 ├── vector_store/                   ← ChromaDB persists here (auto-created)
@@ -276,7 +418,8 @@ ingrelens-ai/
 ├── .env.example                    ← Environment variable template
 ├── Dockerfile                      ← Container build
 ├── docker-compose.yml              ← Multi-container setup
-└── requirements.txt                ← All dependencies (incl. MCP SDK)
+├── requirements.txt                ← Core dependencies (incl. MCP SDK) — zero API keys needed
+└── requirements-adk.txt            ← Optional: Google ADK layer
 ```
 
 ---
@@ -369,11 +512,12 @@ locations for each concept, so nothing has to be hunted down:
 
 | Key Concept | Where | Details |
 |---|---|---|
-| **Multi-agent system** | `backend/services/coordinator_agent.py` | `CoordinatorAgent.handle()` — real branching logic (not a fixed pipeline), routes to 5 specialists. Tested in `tests/test_coordinator_agent.py` (asserts on which agents ran). |
-| **MCP Server** | `mcp_server.py` | 3 tools (`analyze_ingredients`, `analyze_barcode`, `ask_ingredient_question`), all routed through the same Coordinator — see [MCP Server](#-mcp-server) above. |
-| **Security features** | `.gitignore`, `.env.example`, `config/settings.py` | Secrets never committed (`.env`, `.streamlit/secrets.toml` gitignored); no hardcoded keys anywhere in the repo; `IngredientParser` bounds/sanitizes untrusted input before classification; graceful fallback (never crashes) when OCR/LLM/network calls fail. |
+| **Multi-agent system (ADK)** | `backend/services/coordinator_agent.py`, `backend/adk/agents.py` | Deterministic Coordinator with real branching logic (not a fixed pipeline), routes to 5 specialists — tested in `tests/test_coordinator_agent.py`. The same 6-agent shape is also expressed as native Google ADK `Agent`/`FunctionTool`/sub-agent primitives — see [Google ADK Agent Layer](#-google-adk-agent-layer) above and `tests/test_adk_agents.py` (11 tests). |
+| **MCP Server** | `mcp_server.py`, `backend/adk/agents.py::mcp_backed_coordinator` | 3 tools (`analyze_ingredients`, `analyze_barcode`, `ask_ingredient_question`) routed through the Coordinator — reachable from any MCP client, **and** from an ADK agent directly via `McpToolset` (real subprocess handshake verified in `tests/test_adk_agents.py::TestADKMCPIntegration`). |
+| **Security features** | `.gitignore`, `.env.example`, `config/settings.py`, `utils/logger.py` | Secrets never committed (`.env`, `.streamlit/secrets.toml` gitignored); no hardcoded keys anywhere in the repo; `IngredientParser` bounds/sanitizes untrusted input before classification; graceful fallback (never crashes) when OCR/LLM/network calls fail; logging fixed to stderr so it can never corrupt the MCP stdio protocol channel (see Risk Checklist). |
 | **Deployability** | `Dockerfile`, `docker-compose.yml` | One-command local run (`docker-compose up --build`) or free Streamlit Cloud deploy — see [Quick Start](#-quick-start) above. |
-| **Agent skills / tool use** | `backend/services/analysis_service.py`, `backend/services/product_service.py` | Each specialist is itself built from composable tools the Coordinator and Classification Agent call: knowledge-base lookup, alias matching, keyword rules, ChromaDB vector search, Open Food Facts API. |
+| **Agent skills / tool use** | `backend/services/analysis_service.py`, `backend/services/product_service.py`, `backend/adk/tools.py` | Each specialist is built from composable tools: knowledge-base lookup, alias matching, keyword rules, ChromaDB vector search, Open Food Facts API — the same functions ADK wraps as `FunctionTool`s, with no second implementation. |
+| **Evaluation / proof layer** | `evaluation/` | 20 hand-written edge cases (unknown products, conflicting labels, allergies, broken barcodes) scored on routing accuracy, classification accuracy, fallback success, and tool execution success — see [Evaluation Framework](evaluation/README.md). |
 
 ---
 
@@ -400,13 +544,69 @@ locations for each concept, so nothing has to be hunted down:
 
 ## 🏆 Kaggle Capstone Highlights
 
-- ✅ **Multi-agent system** — 1 Coordinator + 5 specialist agents, with real per-request branching (see Key Concepts table above)
-- ✅ **MCP Server** — Coordinator exposed as 3 callable tools for any MCP client
+- ✅ **Multi-agent system, ADK-native** — 1 Coordinator + 5 specialist agents, both as a deterministic Python implementation and as native Google ADK `Agent`/`FunctionTool` primitives, with real per-request branching (see Key Concepts table above)
+- ✅ **MCP Server** — Coordinator exposed as 3 callable tools for any MCP client, and directly reachable from an ADK agent via `McpToolset`
+- ✅ **Evaluation/proof layer** — 20 edge cases, 4 metrics, 100% pass, one real bug found and fixed by the harness itself
 - ✅ **RAG implementation** — ChromaDB + Sentence Transformers
 - ✅ **Real-world impact** — Solves genuine vegan/allergy problem
-- ✅ **Production quality** — 183 tests passing, Docker, logging, error handling
-- ✅ **Free tier** — Zero paid APIs, deployable instantly
+- ✅ **Production quality** — 194 tests passing, Docker, logging, error handling
+- ✅ **Free tier** — Zero paid APIs, deployable instantly (ADK layer is the one opt-in exception, clearly separated)
 - ✅ **3M+ products** — Open Food Facts integration
+
+---
+
+## 🎬 5-Minute Demo Script
+
+See [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) for the full scene-by-scene
+judge pitch (before/after hook, live agent-orchestration trace, edge-case
+highlight, ADK+MCP moment, close). Summary of the beats:
+
+1. **Hook (0:00-0:30)** — the "vegan" label lie: a product marketed as vegan
+   that isn't, and why a human (or a single LLM call) misses it.
+2. **Live orchestration (0:30-2:00)** — scan a barcode, watch the agent
+   badges light up in the order the Coordinator actually chose them; repeat
+   with a bare question and show only the AI Analyst badge lights up.
+3. **Edge case (2:00-3:00)** — the evaluation harness live: run
+   `python -m evaluation.run_evaluation`, point at the noisy-OCR case that's
+   *intentionally* disclosed as a known limitation rather than hidden.
+4. **ADK + MCP (3:00-4:15)** — show `backend/adk/agents.py`'s
+   `mcp_backed_coordinator()`, and the passing `TestADKMCPIntegration` test,
+   to prove the ADK agent's tools are sourced live from the MCP server.
+5. **Close (4:15-5:00)** — impact statement + what's next.
+
+---
+
+## ⚠️ Risk Checklist
+
+Honest gaps a judge could find — disclosed here rather than hidden:
+
+1. **The ADK layer needs `GOOGLE_API_KEY` to process a live turn.** Every
+   ADK object constructs and the ADK↔MCP tool listing works with zero
+   configuration (11 passing tests prove this), but `Agent` is `LlmAgent` —
+   an actual conversational turn is model-backed. Mitigation: the
+   deterministic `CoordinatorAgent` remains the zero-config default for the
+   Streamlit app and MCP server; the ADK layer is clearly scoped as
+   additional, not a replacement.
+2. **Known classification limitation, disclosed, not hidden:** under heavy
+   OCR character-substitution noise, the vector-search fallback layer can
+   match a corrupted ingredient name to a semantically unrelated real
+   ingredient (e.g. "Sk1mm3d m1lk p0wd3r" → "vitamin d3" by embedding
+   distance), which can under-classify the overall diet category even
+   though the mismatched ingredient still correctly lands in
+   `non_vegan_ingredients`. Tracked explicitly in `evaluation/datasets/
+   food_label_edge_cases.json` (case `fl_06`) rather than papered over.
+3. **No live deployment URL yet.** `Dockerfile`/`docker-compose.yml` work
+   locally; a Streamlit Cloud deploy is one click away (see Quick Start) but
+   hasn't been done as of this writing — do this before recording the demo.
+4. **Antigravity video segment is not yet recorded.** The demo script above
+   describes exactly what to show; it still has to be captured on video.
+5. **Vector search + LLM analyst have real per-request latency** (ChromaDB
+   embedding lookup, optional network calls) — fine for a demo, would need
+   caching/batching at real scale (see Scalability Path above).
+6. **`google-adk` pulls in a heavier dependency tree** (fastapi,
+   google-genai, opentelemetry) — kept in `requirements-adk.txt`, separate
+   from the core `requirements.txt`, specifically so it can't slow down or
+   break the free-tier Streamlit Cloud deploy path.
 
 ---
 

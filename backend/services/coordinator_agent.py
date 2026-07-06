@@ -69,6 +69,11 @@ class CoordinatorAgent:
     ) -> CoordinatorResult:
         agents_used = []
 
+        # Whitespace-only text is the same as no text — a pasted blank/blank
+        # OCR read shouldn't silently run classification on nothing.
+        if ingredients_text is not None and not ingredients_text.strip():
+            ingredients_text = None
+
         # Rule 1: a bare question, nothing to analyze -> AI Analyst only.
         if question and not (barcode or image_file or ingredients_text):
             agents_used.append("ai_analyst")

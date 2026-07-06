@@ -1,0 +1,59 @@
+[
+  {
+    "id": "fl_01_unknown_gibberish_ingredient",
+    "case_type": "unknown_product_fallback",
+    "input": {"ingredients_text": "xyzunknowningredient12345", "product_name": "Mystery Item"},
+    "expected_agents_used": ["classification"],
+    "expect_crash": false,
+    "note": "Vector-search fallback layer should find a nearest neighbor or return uncertain — must never crash or hard-fail on nonsense input."
+  },
+  {
+    "id": "fl_02_conflicting_labels_vegan_claim_dairy_ingredient",
+    "case_type": "conflicting_labels",
+    "input": {"ingredients_text": "Water, Pea protein, Sugar, Skimmed milk powder, Salt", "product_name": "\"Vegan\" Protein Bar (mislabeled)"},
+    "expected_diet_category_in": ["Vegetarian", "Non-Vegetarian"],
+    "expect_not": "Vegan",
+    "note": "Product name/marketing claims 'vegan' but the ingredient list itself contains dairy — classification must go by the actual ingredient list, not the label's claim."
+  },
+  {
+    "id": "fl_03_conflicting_labels_natural_flavor_ambiguous",
+    "case_type": "conflicting_labels",
+    "input": {"ingredients_text": "Sugar, Citric acid, Natural flavors, Carmine (E120)", "product_name": "Fruit Candy"},
+    "expected_diet_category_in": ["Non-Vegetarian", "Uncertain"],
+    "expect_not": "Vegan",
+    "note": "Carmine (E120) is an insect-derived colorant hidden behind an innocuous-sounding label — must be caught."
+  },
+  {
+    "id": "fl_04_missing_ingredients_data",
+    "case_type": "missing_data",
+    "input": {"ingredients_text": "", "product_name": "Blank Label"},
+    "expect_crash": false,
+    "expect_error_result": true,
+    "note": "Empty ingredient string must produce a clean error/uncertain result, not an exception."
+  },
+  {
+    "id": "fl_05_whitespace_only_ingredients",
+    "case_type": "missing_data",
+    "input": {"ingredients_text": "   ", "product_name": "Blank Label 2"},
+    "expect_crash": false,
+    "expect_error_result": true,
+    "note": "Whitespace-only input is effectively missing data."
+  },
+  {
+    "id": "fl_06_ocr_noisy_text_does_not_crash",
+    "case_type": "ocr_recovery",
+    "input": {"ingredients_text": "Sug@r, P@lm 0il, H@z3lnuts (13%), Sk1mm3d m1lk p0wd3r (8.7%), C0c0@, S0y@ l3c1th1n", "product_name": "Noisy OCR Scan"},
+    "expected_diet_category_in": ["Vegan", "Vegetarian", "Non-Vegetarian", "Uncertain"],
+    "note": "KNOWN LIMITATION (see risk checklist): heavy character-substitution noise can make the vector-search fallback match the WRONG ingredient entirely (e.g. 'Sk1mm3d m1lk p0wd3r' -> 'vitamin d3' by embedding distance, not 'skimmed milk powder'), which can under-classify the diet category even though the ingredient still correctly lands in non_vegan_ingredients. This case intentionally only asserts 'does not crash', not 'gets the category right' — tightening it is exactly the guardrail this evaluation harness exists to add once the aggregation bug is fixed."
+  },
+  {
+    "id": "fl_07_multi_product_comparison_healthy_vs_unhealthy",
+    "case_type": "multi_product_comparison",
+    "input": {
+      "product_a": {"ingredients_text": "Pea protein isolate, Dates, Cashews, Cocoa powder, Coconut oil, Sea salt", "product_name": "Plant Protein Bar"},
+      "product_b": {"ingredients_text": "Sugar, Palm oil, Hazelnuts (13%), Skimmed milk powder (8.7%), Fat-reduced cocoa, Soya lecithin, Vanillin", "product_name": "Nutella"}
+    },
+    "expect_health_score_a_gt_b": true,
+    "note": "Comparison page's core promise: a whole-food product must score meaningfully higher than an ultra-processed one."
+  }
+]
