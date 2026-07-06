@@ -58,13 +58,13 @@ header[data-testid="stHeader"] *{{display:none!important}}
 }}
 .st-key-il_topnav [data-testid="stHorizontalBlock"]{{align-items:center}}
 .il-topnav-brand{{display:flex;align-items:center;gap:12px;white-space:nowrap;padding-left:6px;cursor:pointer}}
-/* Brand/logo doubles as the Home link. The real st.page_link is kept in
-   the DOM (for genuine Streamlit routing) but visually collapsed —
-   clicks are forwarded to it from the visible logo via JS (below),
-   since Streamlit's own fit-content sizing on the link/anchor kept
-   winning over any inset:0 overlay attempt. */
+/* Brand/logo doubles as the Home link. The real st.button is kept in the
+   DOM (so a click can mark Home as "entered" and land on Quick Actions
+   directly) but visually collapsed — clicks are forwarded to it from the
+   visible logo via JS (below), since Streamlit's own fit-content sizing
+   on the button kept winning over any inset:0 overlay attempt. */
 .st-key-il_topnav_brand_link{{position:relative}}
-.st-key-il_topnav_brand_link [data-testid="stPageLink"]{{
+.st-key-il_topnav_brand_link button{{
   position:absolute;top:0;left:0;opacity:0;pointer-events:none;
 }}
 .il-topnav-word{{font-weight:800;font-size:1.02rem;letter-spacing:-0.01em;color:{SAGE['charcoal']}}}
@@ -880,22 +880,25 @@ def render_top_nav():
         with col_logo:
             with st.container(key="il_topnav_brand_link"):
                 st.markdown(logo_html, unsafe_allow_html=True)
-                # A real page_link performs the same Home navigation the old
-                # "Home" nav item did (genuine Streamlit routing — a raw <a>
-                # would drop the persisted-auth query param on a full page
-                # load). It's visually collapsed; clicks on the visible logo
-                # are forwarded to its inner <a> via JS, since Streamlit's
-                # own fit-content sizing on the link kept winning over any
+                # A real st.button (not a page_link) so clicking the logo can
+                # also mark the Home dashboard as already "entered" — landing
+                # straight on Quick Actions instead of the pre-Get-Started
+                # hero gate. It's visually collapsed; clicks on the visible
+                # logo are forwarded to it via JS, since Streamlit's own
+                # fit-content sizing on the button kept winning over any
                 # CSS-only inset:0 overlay attempt.
-                st.page_link("app.py", label="IngreLens AI")
+                if st.button("IngreLens AI", key="il_brand_home_btn"):
+                    st.session_state["entered_app"] = True
+                    st.session_state["_scroll_to_quick_actions"] = True
+                    st.switch_page("app.py")
                 components.html(
                     """<script>(function(){
                         const doc = window.parent.document;
                         const brand = doc.querySelector('.il-topnav-brand');
-                        const link = doc.querySelector(
-                            '.st-key-il_topnav_brand_link [data-testid="stPageLink"] a');
-                        if (brand && link) {
-                            brand.onclick = function(){ link.click(); };
+                        const btn = doc.querySelector(
+                            '.st-key-il_topnav_brand_link button');
+                        if (brand && btn) {
+                            brand.onclick = function(){ btn.click(); };
                         }
                     })();</script>""",
                     height=0,
