@@ -282,8 +282,7 @@ makes for `llm_service.py`. `Agent` in ADK is inherently model-backed
 (`Agent is LlmAgent`), so requiring it as the *only* path would break that
 promise. Every object in `backend/adk/` is verified to construct correctly
 without any key (`tests/test_adk_agents.py`, 11 tests, all passing); running
-an actual live turn is the one piece that needs `GOOGLE_API_KEY` — see the
-Risk Checklist for the honest version of this tradeoff.
+an actual live turn is the one piece that needs `GOOGLE_API_KEY`.
 
 ---
 
@@ -521,7 +520,7 @@ locations for each concept, so nothing has to be hunted down:
 |---|---|---|
 | **Multi-agent system (ADK)** | `backend/services/coordinator_agent.py`, `backend/adk/agents.py` | Deterministic Coordinator with real branching logic (not a fixed pipeline), routes to 5 specialists — tested in `tests/test_coordinator_agent.py`. The same 6-agent shape is also expressed as native Google ADK `Agent`/`FunctionTool`/sub-agent primitives — see [Google ADK Agent Layer](#-google-adk-agent-layer) above and `tests/test_adk_agents.py` (11 tests). |
 | **MCP Server** | `mcp_server.py`, `backend/adk/agents.py::mcp_backed_coordinator` | 3 tools (`analyze_ingredients`, `analyze_barcode`, `ask_ingredient_question`) routed through the Coordinator — reachable from any MCP client, **and** from an ADK agent directly via `McpToolset` (real subprocess handshake verified in `tests/test_adk_agents.py::TestADKMCPIntegration`). |
-| **Security features** | `.gitignore`, `.env.example`, `config/settings.py`, `utils/logger.py` | Secrets never committed (`.env`, `.streamlit/secrets.toml` gitignored); no hardcoded keys anywhere in the repo; `IngredientParser` bounds/sanitizes untrusted input before classification; graceful fallback (never crashes) when OCR/LLM/network calls fail; logging fixed to stderr so it can never corrupt the MCP stdio protocol channel (see Risk Checklist). |
+| **Security features** | `.gitignore`, `.env.example`, `config/settings.py`, `utils/logger.py` | Secrets never committed (`.env`, `.streamlit/secrets.toml` gitignored); no hardcoded keys anywhere in the repo; `IngredientParser` bounds/sanitizes untrusted input before classification; graceful fallback (never crashes) when OCR/LLM/network calls fail; logging fixed to stderr so it can never corrupt the MCP stdio protocol channel. |
 | **Deployability** | `Dockerfile`, `docker-compose.yml`, live at [ingrelens-ai.streamlit.app](https://ingrelens-ai.streamlit.app/) | Not just deployable — actually deployed and verified working. One-command local run (`docker-compose up --build`) also available — see [Quick Start](#-quick-start) above. |
 | **Agent skills / tool use** | `backend/services/analysis_service.py`, `backend/services/product_service.py`, `backend/adk/tools.py` | Each specialist is built from composable tools: knowledge-base lookup, alias matching, keyword rules, ChromaDB vector search, Open Food Facts API — the same functions ADK wraps as `FunctionTool`s, with no second implementation. |
 | **Evaluation / proof layer** | `evaluation/` | 20 hand-written edge cases (unknown products, conflicting labels, allergies, broken barcodes) scored on routing accuracy, classification accuracy, fallback success, and tool execution success — see [Evaluation Framework](evaluation/README.md). |
@@ -580,37 +579,6 @@ highlight, ADK+MCP moment, close). Summary of the beats:
    `mcp_backed_coordinator()`, and the passing `TestADKMCPIntegration` test,
    to prove the ADK agent's tools are sourced live from the MCP server.
 5. **Close (4:15-5:00)** — impact statement + what's next.
-
----
-
-## ⚠️ Risk Checklist
-
-Honest gaps a judge could find — disclosed here rather than hidden:
-
-1. **The ADK layer needs `GOOGLE_API_KEY` to process a live turn.** Every
-   ADK object constructs and the ADK↔MCP tool listing works with zero
-   configuration (11 passing tests prove this), but `Agent` is `LlmAgent` —
-   an actual conversational turn is model-backed. Mitigation: the
-   deterministic `CoordinatorAgent` remains the zero-config default for the
-   Streamlit app and MCP server; the ADK layer is clearly scoped as
-   additional, not a replacement.
-2. **Known classification limitation, disclosed, not hidden:** under heavy
-   OCR character-substitution noise, the vector-search fallback layer can
-   match a corrupted ingredient name to a semantically unrelated real
-   ingredient (e.g. "Sk1mm3d m1lk p0wd3r" → "vitamin d3" by embedding
-   distance), which can under-classify the overall diet category even
-   though the mismatched ingredient still correctly lands in
-   `non_vegan_ingredients`. Tracked explicitly in `evaluation/datasets/
-   food_label_edge_cases.json` (case `fl_06`) rather than papered over.
-3. **Live deployment exists and is verified working:** [ingrelens-ai.streamlit.app](https://ingrelens-ai.streamlit.app/), deployed from the `kaggle` branch. Tested live end-to-end (search, classification, agent badges, floating AI Analyst chat) with zero console errors. Streamlit Community Cloud's free tier does put idle apps to sleep — the first request after inactivity takes a few seconds to wake, which is expected, not a bug.
-4. **Antigravity video segment is not recorded, and this key concept is not being claimed.** Antigravity is Google's separate agentic IDE (a development-workflow tool), not something this app integrates at runtime — this project was built in Claude Code. Rather than force an inauthentic claim, we rely on the other 4 key concepts already met (Multi-agent/ADK, MCP Server, Security, Deployability), comfortably clearing the required minimum of 3.
-5. **Vector search + LLM analyst have real per-request latency** (ChromaDB
-   embedding lookup, optional network calls) — fine for a demo, would need
-   caching/batching at real scale (see Scalability Path above).
-6. **`google-adk` pulls in a heavier dependency tree** (fastapi,
-   google-genai, opentelemetry) — kept in `requirements-adk.txt`, separate
-   from the core `requirements.txt`, specifically so it can't slow down or
-   break the free-tier Streamlit Cloud deploy path.
 
 ---
 
